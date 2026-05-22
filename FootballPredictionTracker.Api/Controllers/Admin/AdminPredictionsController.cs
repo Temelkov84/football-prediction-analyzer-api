@@ -1,0 +1,77 @@
+﻿using FootballPredictionTracker.Api.Data;
+using FootballPredictionTracker.Api.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace FootballPredictionTracker.Api.Controllers.Admin;
+
+[ApiController]
+[Route("api/admin/predictions")]
+public class AdminPredictionsController : ControllerBase
+{
+    private readonly ApplicationDbContext _dbContext;
+    private readonly PredictionService _predictionService;
+
+    public AdminPredictionsController(
+        ApplicationDbContext dbContext,
+        PredictionService predictionService)
+    {
+        _dbContext = dbContext;
+        _predictionService = predictionService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPredictions()
+    {
+        var predictions = await _dbContext.Predictions
+            .Include(p => p.Match)
+                .ThenInclude(m => m.League)
+            .Include(p => p.Match)
+                .ThenInclude(m => m.HomeTeam)
+            .Include(p => p.Match)
+                .ThenInclude(m => m.AwayTeam)
+            .OrderBy(p => p.Match.League.Name)
+            .ThenBy(p => p.Match.KickoffTime)
+            .ToListAsync();
+
+        return Ok(predictions);
+    }
+
+    [HttpPost("calculate/{matchId}")]
+    public async Task<IActionResult> CalculatePrediction(int matchId)
+    {
+        var match = await _dbContext.Matches
+            .Include(m => m.League)
+            .Include(m => m.HomeTeam)
+            .Include(m => m.AwayTeam)
+            .FirstOrDefaultAsync(m => m.Id == matchId);
+
+        if (match == null)
+        {
+            return NotFound("Match does not exist.");
+        }
+
+        var statistics = await _dbContext.MatchStatistics
+            .FirstOrDefaultAsync(s => s.MatchId == matchId);
+
+        if (statistics == null)
+        {
+            return BadRequest("Statistics do not exist for this match.");
+        }
+
+        var existingPrediction = await _dbContext.Predictions
+            .FirstOrDefaultAsync(p => p.MatchId == matchId);
+
+        if (existingPrediction != null)
+        {
+            _dbContext.Predictions.Remove(existingPrediction);
+        }
+
+        var prediction = _predictionService.CalculatePrediction(match, statistics);
+
+        _dbContext.Predictions.Add(prediction);
+        await _dbContext.SaveChangesAsync();
+
+        return Ok(prediction);
+    }
+}

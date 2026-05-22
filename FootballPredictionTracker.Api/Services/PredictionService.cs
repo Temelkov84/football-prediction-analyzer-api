@@ -1,4 +1,5 @@
 ﻿using FootballPredictionTracker.Api.DTOs;
+using FootballPredictionTracker.Api.Models;
 
 namespace FootballPredictionTracker.Api.Services
 {
@@ -65,6 +66,49 @@ namespace FootballPredictionTracker.Api.Services
             }
 
             return "The provided statistics suggest a balanced match with no clear dominant outcome.";
+        }
+
+        public Prediction CalculatePrediction(Match match, MatchStatistics statistics)
+        {
+            var homeScore =
+                statistics.HomeTeamRecentWins * 3 +
+                statistics.HomeTeamRecentDraws * 1 +
+                statistics.HeadToHeadHomeWins * 2;
+
+            var awayScore =
+                statistics.AwayTeamRecentWins * 3 +
+                statistics.AwayTeamRecentDraws * 1 +
+                statistics.HeadToHeadAwayWins * 2;
+
+            var drawScore =
+                statistics.HomeTeamRecentDraws +
+                statistics.AwayTeamRecentDraws +
+                statistics.HeadToHeadDraws * 2;
+
+            var totalScore = homeScore + awayScore + drawScore;
+
+            if (totalScore == 0)
+            {
+                return new Prediction
+                {
+                    MatchId = match.Id,
+                    HomeWinProbability = 33,
+                    DrawProbability = 34,
+                    AwayWinProbability = 33
+                };
+            }
+
+            var homeProbability = (int)Math.Round((double)homeScore / totalScore * 100);
+            var drawProbability = (int)Math.Round((double)drawScore / totalScore * 100);
+            var awayProbability = 100 - homeProbability - drawProbability;
+
+            return new Prediction
+            {
+                MatchId = match.Id,
+                HomeWinProbability = homeProbability,
+                DrawProbability = drawProbability,
+                AwayWinProbability = awayProbability
+            };
         }
     }
 }
