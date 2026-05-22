@@ -143,4 +143,29 @@ public class AdminMatchStatisticsController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteMatchStatistics(int id)
+    {
+        var statistics = await _dbContext.MatchStatistics
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (statistics == null)
+        {
+            return NotFound("Statistics do not exist.");
+        }
+
+        var predictionExists = await _dbContext.Predictions
+            .AnyAsync(p => p.MatchId == statistics.MatchId);
+
+        if (predictionExists)
+        {
+            return BadRequest("Cannot delete statistics while prediction exists for this match.");
+        }
+
+        _dbContext.MatchStatistics.Remove(statistics);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

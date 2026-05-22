@@ -22,6 +22,15 @@ public class AdminTeamsController : ControllerBase
     {
         var teams = await _dbContext.Teams
             .Include(t => t.League)
+            .OrderBy(t => t.League.Name)
+            .ThenBy(t => t.Name)
+            .Select(t => new AdminTeamResponse
+            {
+                Id = t.Id,
+                Name = t.Name,
+                LeagueId = t.LeagueId,
+                League = t.League.Name
+            })
             .ToListAsync();
 
         return Ok(teams);
@@ -95,14 +104,39 @@ public class AdminTeamsController : ControllerBase
 
         var league = await _dbContext.Leagues.FindAsync(team.LeagueId);
 
-        var response = new
+        var response = new AdminTeamResponse
         {
-            team.Id,
-            team.Name,
-            team.LeagueId,
+            Id = team.Id,
+            Name = team.Name,
+            LeagueId = team.LeagueId,
             League = league!.Name
         };
 
         return Ok(response);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTeam(int id)
+    {
+        var team = await _dbContext.Teams
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (team == null)
+        {
+            return NotFound("Team does not exist.");
+        }
+
+        var teamUsedInMatches = await _dbContext.Matches
+            .AnyAsync(m => m.HomeTeamId == id || m.AwayTeamId == id);
+
+        if (teamUsedInMatches)
+        {
+            return BadRequest("Cannot delete team while it is used in matches.");
+        }
+
+        _dbContext.Teams.Remove(team);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
     }
 }

@@ -77,4 +77,29 @@ public class AdminLeaguesController : ControllerBase
 
         return Ok(league);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteLeague(int id)
+    {
+        var league = await _dbContext.Leagues
+            .FirstOrDefaultAsync(l => l.Id == id);
+
+        if (league == null)
+        {
+            return NotFound("League does not exist.");
+        }
+
+        var leagueHasTeams = await _dbContext.Teams
+            .AnyAsync(t => t.LeagueId == id);
+
+        if (leagueHasTeams)
+        {
+            return BadRequest("Cannot delete league while it has teams.");
+        }
+
+        _dbContext.Leagues.Remove(league);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

@@ -100,4 +100,21 @@ public class AdminPredictionsController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePrediction(int id)
+    {
+        var prediction = await _dbContext.Predictions
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (prediction == null)
+        {
+            return NotFound("Prediction does not exist.");
+        }
+
+        _dbContext.Predictions.Remove(prediction);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }

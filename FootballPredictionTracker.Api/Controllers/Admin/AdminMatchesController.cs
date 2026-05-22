@@ -168,4 +168,37 @@ public class AdminMatchesController : ControllerBase
 
         return Ok(response);
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteMatch(int id)
+    {
+        var match = await _dbContext.Matches
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (match == null)
+        {
+            return NotFound("Match does not exist.");
+        }
+
+        var statisticsExist = await _dbContext.MatchStatistics
+            .AnyAsync(s => s.MatchId == id);
+
+        if (statisticsExist)
+        {
+            return BadRequest("Cannot delete match while statistics exist for this match.");
+        }
+
+        var predictionExists = await _dbContext.Predictions
+            .AnyAsync(p => p.MatchId == id);
+
+        if (predictionExists)
+        {
+            return BadRequest("Cannot delete match while prediction exists for this match.");
+        }
+
+        _dbContext.Matches.Remove(match);
+        await _dbContext.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
