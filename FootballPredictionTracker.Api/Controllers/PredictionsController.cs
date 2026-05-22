@@ -1,6 +1,5 @@
 ﻿using FootballPredictionTracker.Api.Data;
 using FootballPredictionTracker.Api.DTOs;
-using FootballPredictionTracker.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,28 +9,11 @@ namespace FootballPredictionTracker.Api.Controllers
     [Route("api/[controller]")]
     public class PredictionsController : ControllerBase
     {
-        private readonly PredictionService predictionService;
         private readonly ApplicationDbContext dbContext;
 
-        public PredictionsController(
-            PredictionService predictionService,
-            ApplicationDbContext dbContext)
+        public PredictionsController(ApplicationDbContext dbContext)
         {
-            this.predictionService = predictionService;
             this.dbContext = dbContext;
-        }
-
-        [HttpPost("calculate")]
-        public ActionResult<PredictionResponse> CalculatePrediction(PredictionRequest request)
-        {
-            if (request.HomeTeam.Trim().Equals(request.AwayTeam.Trim(), StringComparison.OrdinalIgnoreCase))
-            {
-                return BadRequest("Home team and away team must be different.");
-            }
-
-            PredictionResponse response = predictionService.CalculatePrediction(request);
-
-            return Ok(response);
         }
 
         [HttpGet("weekly")]
