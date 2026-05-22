@@ -37,15 +37,32 @@ public class AdminMatchStatisticsController : ControllerBase
                 KickoffTime = s.Match.KickoffTime,
                 HomeTeam = s.Match.HomeTeam.Name,
                 AwayTeam = s.Match.AwayTeam.Name,
+
                 HomeTeamRecentWins = s.HomeTeamRecentWins,
                 HomeTeamRecentDraws = s.HomeTeamRecentDraws,
                 HomeTeamRecentLosses = s.HomeTeamRecentLosses,
+
                 AwayTeamRecentWins = s.AwayTeamRecentWins,
                 AwayTeamRecentDraws = s.AwayTeamRecentDraws,
                 AwayTeamRecentLosses = s.AwayTeamRecentLosses,
+
                 HeadToHeadHomeWins = s.HeadToHeadHomeWins,
                 HeadToHeadDraws = s.HeadToHeadDraws,
-                HeadToHeadAwayWins = s.HeadToHeadAwayWins
+                HeadToHeadAwayWins = s.HeadToHeadAwayWins,
+
+                HomeTeamHomeWins = s.HomeTeamHomeWins,
+                HomeTeamHomeDraws = s.HomeTeamHomeDraws,
+                HomeTeamHomeLosses = s.HomeTeamHomeLosses,
+
+                AwayTeamAwayWins = s.AwayTeamAwayWins,
+                AwayTeamAwayDraws = s.AwayTeamAwayDraws,
+                AwayTeamAwayLosses = s.AwayTeamAwayLosses,
+
+                HomeTeamGoalsScored = s.HomeTeamGoalsScored,
+                HomeTeamGoalsConceded = s.HomeTeamGoalsConceded,
+
+                AwayTeamGoalsScored = s.AwayTeamGoalsScored,
+                AwayTeamGoalsConceded = s.AwayTeamGoalsConceded
             })
             .ToListAsync();
 
@@ -80,15 +97,32 @@ public class AdminMatchStatisticsController : ControllerBase
         var statistics = new MatchStatistics
         {
             MatchId = request.MatchId,
+
             HomeTeamRecentWins = request.HomeTeamRecentWins,
             HomeTeamRecentDraws = request.HomeTeamRecentDraws,
             HomeTeamRecentLosses = request.HomeTeamRecentLosses,
+
             AwayTeamRecentWins = request.AwayTeamRecentWins,
             AwayTeamRecentDraws = request.AwayTeamRecentDraws,
             AwayTeamRecentLosses = request.AwayTeamRecentLosses,
+
             HeadToHeadHomeWins = request.HeadToHeadHomeWins,
             HeadToHeadDraws = request.HeadToHeadDraws,
-            HeadToHeadAwayWins = request.HeadToHeadAwayWins
+            HeadToHeadAwayWins = request.HeadToHeadAwayWins,
+
+            HomeTeamHomeWins = request.HomeTeamHomeWins,
+            HomeTeamHomeDraws = request.HomeTeamHomeDraws,
+            HomeTeamHomeLosses = request.HomeTeamHomeLosses,
+
+            AwayTeamAwayWins = request.AwayTeamAwayWins,
+            AwayTeamAwayDraws = request.AwayTeamAwayDraws,
+            AwayTeamAwayLosses = request.AwayTeamAwayLosses,
+
+            HomeTeamGoalsScored = request.HomeTeamGoalsScored,
+            HomeTeamGoalsConceded = request.HomeTeamGoalsConceded,
+
+            AwayTeamGoalsScored = request.AwayTeamGoalsScored,
+            AwayTeamGoalsConceded = request.AwayTeamGoalsConceded
         };
 
         _dbContext.MatchStatistics.Add(statistics);
@@ -129,6 +163,20 @@ public class AdminMatchStatisticsController : ControllerBase
         statistics.HeadToHeadDraws = request.HeadToHeadDraws;
         statistics.HeadToHeadAwayWins = request.HeadToHeadAwayWins;
 
+        statistics.HomeTeamHomeWins = request.HomeTeamHomeWins;
+        statistics.HomeTeamHomeDraws = request.HomeTeamHomeDraws;
+        statistics.HomeTeamHomeLosses = request.HomeTeamHomeLosses;
+
+        statistics.AwayTeamAwayWins = request.AwayTeamAwayWins;
+        statistics.AwayTeamAwayDraws = request.AwayTeamAwayDraws;
+        statistics.AwayTeamAwayLosses = request.AwayTeamAwayLosses;
+
+        statistics.HomeTeamGoalsScored = request.HomeTeamGoalsScored;
+        statistics.HomeTeamGoalsConceded = request.HomeTeamGoalsConceded;
+
+        statistics.AwayTeamGoalsScored = request.AwayTeamGoalsScored;
+        statistics.AwayTeamGoalsConceded = request.AwayTeamGoalsConceded;
+
         await _dbContext.SaveChangesAsync();
 
         var response = new AdminMatchStatisticsResponse
@@ -139,15 +187,32 @@ public class AdminMatchStatisticsController : ControllerBase
             KickoffTime = statistics.Match.KickoffTime,
             HomeTeam = statistics.Match.HomeTeam.Name,
             AwayTeam = statistics.Match.AwayTeam.Name,
+
             HomeTeamRecentWins = statistics.HomeTeamRecentWins,
             HomeTeamRecentDraws = statistics.HomeTeamRecentDraws,
             HomeTeamRecentLosses = statistics.HomeTeamRecentLosses,
+
             AwayTeamRecentWins = statistics.AwayTeamRecentWins,
             AwayTeamRecentDraws = statistics.AwayTeamRecentDraws,
             AwayTeamRecentLosses = statistics.AwayTeamRecentLosses,
+
             HeadToHeadHomeWins = statistics.HeadToHeadHomeWins,
             HeadToHeadDraws = statistics.HeadToHeadDraws,
-            HeadToHeadAwayWins = statistics.HeadToHeadAwayWins
+            HeadToHeadAwayWins = statistics.HeadToHeadAwayWins,
+
+            HomeTeamHomeWins = statistics.HomeTeamHomeWins,
+            HomeTeamHomeDraws = statistics.HomeTeamHomeDraws,
+            HomeTeamHomeLosses = statistics.HomeTeamHomeLosses,
+
+            AwayTeamAwayWins = statistics.AwayTeamAwayWins,
+            AwayTeamAwayDraws = statistics.AwayTeamAwayDraws,
+            AwayTeamAwayLosses = statistics.AwayTeamAwayLosses,
+
+            HomeTeamGoalsScored = statistics.HomeTeamGoalsScored,
+            HomeTeamGoalsConceded = statistics.HomeTeamGoalsConceded,
+
+            AwayTeamGoalsScored = statistics.AwayTeamGoalsScored,
+            AwayTeamGoalsConceded = statistics.AwayTeamGoalsConceded
         };
 
         return Ok(response);

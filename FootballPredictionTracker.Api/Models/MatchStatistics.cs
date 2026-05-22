@@ -25,4 +25,24 @@ public class MatchStatistics
     public int HeadToHeadDraws { get; set; }
 
     public int HeadToHeadAwayWins { get; set; }
+
+    public int HomeTeamHomeWins { get; set; }
+
+    public int HomeTeamHomeDraws { get; set; }
+
+    public int HomeTeamHomeLosses { get; set; }
+
+    public int AwayTeamAwayWins { get; set; }
+
+    public int AwayTeamAwayDraws { get; set; }
+
+    public int AwayTeamAwayLosses { get; set; }
+
+    public int HomeTeamGoalsScored { get; set; }
+
+    public int HomeTeamGoalsConceded { get; set; }
+
+    public int AwayTeamGoalsScored { get; set; }
+
+    public int AwayTeamGoalsConceded { get; set; }
 }
