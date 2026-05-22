@@ -61,7 +61,10 @@ public class AdminPredictionsController : ControllerBase
 
         if (match == null)
         {
-            return NotFound("Match does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Match does not exist."
+            });
         }
 
         var statistics = await _dbContext.MatchStatistics
@@ -69,7 +72,10 @@ public class AdminPredictionsController : ControllerBase
 
         if (statistics == null)
         {
-            return BadRequest("Statistics do not exist for this match.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Statistics do not exist for this match."
+            });
         }
 
         var existingPrediction = await _dbContext.Predictions
@@ -109,7 +115,10 @@ public class AdminPredictionsController : ControllerBase
 
         if (prediction == null)
         {
-            return NotFound("Prediction does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Prediction does not exist."
+            });
         }
 
         _dbContext.Predictions.Remove(prediction);

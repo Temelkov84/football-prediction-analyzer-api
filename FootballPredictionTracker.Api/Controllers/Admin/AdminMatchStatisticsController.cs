@@ -60,7 +60,10 @@ public class AdminMatchStatisticsController : ControllerBase
 
         if (!matchExists)
         {
-            return BadRequest("Match does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Match does not exist."
+            });
         }
 
         var statisticsAlreadyExist = await _dbContext.MatchStatistics
@@ -68,7 +71,10 @@ public class AdminMatchStatisticsController : ControllerBase
 
         if (statisticsAlreadyExist)
         {
-            return BadRequest("Statistics already exist for this match.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Statistics already exist for this match."
+            });
         }
 
         var statistics = new MatchStatistics
@@ -105,7 +111,10 @@ public class AdminMatchStatisticsController : ControllerBase
 
         if (statistics == null)
         {
-            return NotFound("Statistics do not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Statistics do not exist."
+            });
         }
 
         statistics.HomeTeamRecentWins = request.HomeTeamRecentWins;
@@ -152,7 +161,10 @@ public class AdminMatchStatisticsController : ControllerBase
 
         if (statistics == null)
         {
-            return NotFound("Statistics do not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Statistics do not exist."
+            });
         }
 
         var predictionExists = await _dbContext.Predictions
@@ -160,7 +172,10 @@ public class AdminMatchStatisticsController : ControllerBase
 
         if (predictionExists)
         {
-            return BadRequest("Cannot delete statistics while prediction exists for this match.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Cannot delete statistics while prediction exists for this match."
+            });
         }
 
         _dbContext.MatchStatistics.Remove(statistics);

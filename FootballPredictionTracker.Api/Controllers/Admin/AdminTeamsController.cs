@@ -44,7 +44,10 @@ public class AdminTeamsController : ControllerBase
 
         if (!leagueExists)
         {
-            return BadRequest("League does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League does not exist."
+            });
         }
 
         var teamAlreadyExists = await _dbContext.Teams
@@ -52,7 +55,10 @@ public class AdminTeamsController : ControllerBase
 
         if (teamAlreadyExists)
         {
-            return BadRequest("Team already exists in this league.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Team already exists in this league."
+            });
         }
 
         var team = new Team
@@ -75,7 +81,10 @@ public class AdminTeamsController : ControllerBase
 
         if (team == null)
         {
-            return NotFound("Team does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Team does not exist."
+            });
         }
 
         var leagueExists = await _dbContext.Leagues
@@ -83,7 +92,10 @@ public class AdminTeamsController : ControllerBase
 
         if (!leagueExists)
         {
-            return BadRequest("League does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League does not exist."
+            });
         }
 
         var teamAlreadyExists = await _dbContext.Teams
@@ -94,7 +106,10 @@ public class AdminTeamsController : ControllerBase
 
         if (teamAlreadyExists)
         {
-            return BadRequest("Team already exists in this league.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Team already exists in this league."
+            });
         }
 
         team.Name = request.Name;
@@ -123,7 +138,10 @@ public class AdminTeamsController : ControllerBase
 
         if (team == null)
         {
-            return NotFound("Team does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Team does not exist."
+            });
         }
 
         var teamUsedInMatches = await _dbContext.Matches
@@ -131,7 +149,10 @@ public class AdminTeamsController : ControllerBase
 
         if (teamUsedInMatches)
         {
-            return BadRequest("Cannot delete team while it is used in matches.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Cannot delete team while it is used in matches."
+            });
         }
 
         _dbContext.Teams.Remove(team);

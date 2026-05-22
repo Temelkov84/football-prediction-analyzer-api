@@ -44,7 +44,10 @@ public class AdminMatchesController : ControllerBase
     {
         if (request.HomeTeamId == request.AwayTeamId)
         {
-            return BadRequest("Home team and away team must be different.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Home team and away team must be different."
+            });
         }
 
         var leagueExists = await _dbContext.Leagues
@@ -52,7 +55,10 @@ public class AdminMatchesController : ControllerBase
 
         if (!leagueExists)
         {
-            return BadRequest("League does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League does not exist."
+            });
         }
 
         var homeTeamExists = await _dbContext.Teams
@@ -60,7 +66,10 @@ public class AdminMatchesController : ControllerBase
 
         if (!homeTeamExists)
         {
-            return BadRequest("Home team does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Home team does not exist."
+            });
         }
 
         var awayTeamExists = await _dbContext.Teams
@@ -68,19 +77,25 @@ public class AdminMatchesController : ControllerBase
 
         if (!awayTeamExists)
         {
-            return BadRequest("Away team does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Away team does not exist."
+            });
         }
 
         var matchAlreadyExists = await _dbContext.Matches
-    .AnyAsync(m =>
-        m.LeagueId == request.LeagueId &&
-        m.HomeTeamId == request.HomeTeamId &&
-        m.AwayTeamId == request.AwayTeamId &&
-        m.KickoffTime == request.KickoffTime);
+            .AnyAsync(m =>
+                m.LeagueId == request.LeagueId &&
+                m.HomeTeamId == request.HomeTeamId &&
+                m.AwayTeamId == request.AwayTeamId &&
+                m.KickoffTime == request.KickoffTime);
 
         if (matchAlreadyExists)
         {
-            return BadRequest("Match already exists.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Match already exists."
+            });
         }
 
         var match = new Match
@@ -102,7 +117,10 @@ public class AdminMatchesController : ControllerBase
     {
         if (request.HomeTeamId == request.AwayTeamId)
         {
-            return BadRequest("Home team and away team must be different.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Home team and away team must be different."
+            });
         }
 
         var match = await _dbContext.Matches
@@ -110,7 +128,10 @@ public class AdminMatchesController : ControllerBase
 
         if (match == null)
         {
-            return NotFound("Match does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Match does not exist."
+            });
         }
 
         var leagueExists = await _dbContext.Leagues
@@ -118,7 +139,10 @@ public class AdminMatchesController : ControllerBase
 
         if (!leagueExists)
         {
-            return BadRequest("League does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League does not exist."
+            });
         }
 
         var homeTeamExists = await _dbContext.Teams
@@ -126,7 +150,10 @@ public class AdminMatchesController : ControllerBase
 
         if (!homeTeamExists)
         {
-            return BadRequest("Home team does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Home team does not exist."
+            });
         }
 
         var awayTeamExists = await _dbContext.Teams
@@ -134,20 +161,26 @@ public class AdminMatchesController : ControllerBase
 
         if (!awayTeamExists)
         {
-            return BadRequest("Away team does not exist.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Away team does not exist."
+            });
         }
 
         var matchAlreadyExists = await _dbContext.Matches
-    .AnyAsync(m =>
-        m.Id != id &&
-        m.LeagueId == request.LeagueId &&
-        m.HomeTeamId == request.HomeTeamId &&
-        m.AwayTeamId == request.AwayTeamId &&
-        m.KickoffTime == request.KickoffTime);
+            .AnyAsync(m =>
+                m.Id != id &&
+                m.LeagueId == request.LeagueId &&
+                m.HomeTeamId == request.HomeTeamId &&
+                m.AwayTeamId == request.AwayTeamId &&
+                m.KickoffTime == request.KickoffTime);
 
         if (matchAlreadyExists)
         {
-            return BadRequest("Match already exists.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Match already exists."
+            });
         }
 
         match.LeagueId = request.LeagueId;
@@ -177,7 +210,10 @@ public class AdminMatchesController : ControllerBase
 
         if (match == null)
         {
-            return NotFound("Match does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "Match does not exist."
+            });
         }
 
         var statisticsExist = await _dbContext.MatchStatistics
@@ -185,7 +221,10 @@ public class AdminMatchesController : ControllerBase
 
         if (statisticsExist)
         {
-            return BadRequest("Cannot delete match while statistics exist for this match.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Cannot delete match while statistics exist for this match."
+            });
         }
 
         var predictionExists = await _dbContext.Predictions
@@ -193,7 +232,10 @@ public class AdminMatchesController : ControllerBase
 
         if (predictionExists)
         {
-            return BadRequest("Cannot delete match while prediction exists for this match.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Cannot delete match while prediction exists for this match."
+            });
         }
 
         _dbContext.Matches.Remove(match);

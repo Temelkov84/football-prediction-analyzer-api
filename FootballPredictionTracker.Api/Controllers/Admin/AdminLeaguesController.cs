@@ -33,7 +33,10 @@ public class AdminLeaguesController : ControllerBase
 
         if (leagueAlreadyExists)
         {
-            return BadRequest("League already exists.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League already exists."
+            });
         }
 
         var league = new League
@@ -56,7 +59,10 @@ public class AdminLeaguesController : ControllerBase
 
         if (league == null)
         {
-            return NotFound("League does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "League does not exist."
+            });
         }
 
         var leagueAlreadyExists = await _dbContext.Leagues
@@ -67,7 +73,10 @@ public class AdminLeaguesController : ControllerBase
 
         if (leagueAlreadyExists)
         {
-            return BadRequest("League already exists.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League already exists."
+            });
         }
 
         league.Name = request.Name;
@@ -86,7 +95,10 @@ public class AdminLeaguesController : ControllerBase
 
         if (league == null)
         {
-            return NotFound("League does not exist.");
+            return NotFound(new ErrorResponse
+            {
+                Message = "League does not exist."
+            });
         }
 
         var leagueHasTeams = await _dbContext.Teams
@@ -94,7 +106,10 @@ public class AdminLeaguesController : ControllerBase
 
         if (leagueHasTeams)
         {
-            return BadRequest("Cannot delete league while it has teams.");
+            return BadRequest(new ErrorResponse
+            {
+                Message = "Cannot delete league while it has teams."
+            });
         }
 
         _dbContext.Leagues.Remove(league);
