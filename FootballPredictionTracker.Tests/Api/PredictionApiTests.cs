@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http.Json;
+using System.Net;
 
 namespace FootballPredictionTracker.Tests.Api
 {
@@ -122,6 +123,19 @@ namespace FootballPredictionTracker.Tests.Api
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        }
+
+        [Test]
+        public async Task GetWeeklyPredictions_ShouldReturnOk()
+        {
+            // Arrange
+
+            // Act
+            HttpResponseMessage response =
+            await client!.GetAsync("/api/Predictions/weekly");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         }
     }
 }
