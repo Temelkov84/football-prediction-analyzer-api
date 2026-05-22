@@ -90,4 +90,57 @@ public class AdminMatchStatisticsController : ControllerBase
 
         return CreatedAtAction(nameof(CreateMatchStatistics), new { id = statistics.Id }, statistics);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateMatchStatistics(int id, UpdateMatchStatisticsRequest request)
+    {
+        var statistics = await _dbContext.MatchStatistics
+            .Include(s => s.Match)
+                .ThenInclude(m => m.League)
+            .Include(s => s.Match)
+                .ThenInclude(m => m.HomeTeam)
+            .Include(s => s.Match)
+                .ThenInclude(m => m.AwayTeam)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (statistics == null)
+        {
+            return NotFound("Statistics do not exist.");
+        }
+
+        statistics.HomeTeamRecentWins = request.HomeTeamRecentWins;
+        statistics.HomeTeamRecentDraws = request.HomeTeamRecentDraws;
+        statistics.HomeTeamRecentLosses = request.HomeTeamRecentLosses;
+
+        statistics.AwayTeamRecentWins = request.AwayTeamRecentWins;
+        statistics.AwayTeamRecentDraws = request.AwayTeamRecentDraws;
+        statistics.AwayTeamRecentLosses = request.AwayTeamRecentLosses;
+
+        statistics.HeadToHeadHomeWins = request.HeadToHeadHomeWins;
+        statistics.HeadToHeadDraws = request.HeadToHeadDraws;
+        statistics.HeadToHeadAwayWins = request.HeadToHeadAwayWins;
+
+        await _dbContext.SaveChangesAsync();
+
+        var response = new AdminMatchStatisticsResponse
+        {
+            Id = statistics.Id,
+            MatchId = statistics.MatchId,
+            League = statistics.Match.League.Name,
+            KickoffTime = statistics.Match.KickoffTime,
+            HomeTeam = statistics.Match.HomeTeam.Name,
+            AwayTeam = statistics.Match.AwayTeam.Name,
+            HomeTeamRecentWins = statistics.HomeTeamRecentWins,
+            HomeTeamRecentDraws = statistics.HomeTeamRecentDraws,
+            HomeTeamRecentLosses = statistics.HomeTeamRecentLosses,
+            AwayTeamRecentWins = statistics.AwayTeamRecentWins,
+            AwayTeamRecentDraws = statistics.AwayTeamRecentDraws,
+            AwayTeamRecentLosses = statistics.AwayTeamRecentLosses,
+            HeadToHeadHomeWins = statistics.HeadToHeadHomeWins,
+            HeadToHeadDraws = statistics.HeadToHeadDraws,
+            HeadToHeadAwayWins = statistics.HeadToHeadAwayWins
+        };
+
+        return Ok(response);
+    }
 }

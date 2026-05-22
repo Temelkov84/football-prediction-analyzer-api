@@ -84,4 +84,63 @@ public class AdminMatchesController : ControllerBase
 
         return CreatedAtAction(nameof(CreateMatch), new { id = match.Id }, match);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateMatch(int id, UpdateMatchRequest request)
+    {
+        if (request.HomeTeamId == request.AwayTeamId)
+        {
+            return BadRequest("Home team and away team must be different.");
+        }
+
+        var match = await _dbContext.Matches
+            .FirstOrDefaultAsync(m => m.Id == id);
+
+        if (match == null)
+        {
+            return NotFound("Match does not exist.");
+        }
+
+        var leagueExists = await _dbContext.Leagues
+            .AnyAsync(l => l.Id == request.LeagueId);
+
+        if (!leagueExists)
+        {
+            return BadRequest("League does not exist.");
+        }
+
+        var homeTeamExists = await _dbContext.Teams
+            .AnyAsync(t => t.Id == request.HomeTeamId);
+
+        if (!homeTeamExists)
+        {
+            return BadRequest("Home team does not exist.");
+        }
+
+        var awayTeamExists = await _dbContext.Teams
+            .AnyAsync(t => t.Id == request.AwayTeamId);
+
+        if (!awayTeamExists)
+        {
+            return BadRequest("Away team does not exist.");
+        }
+
+        match.LeagueId = request.LeagueId;
+        match.HomeTeamId = request.HomeTeamId;
+        match.AwayTeamId = request.AwayTeamId;
+        match.KickoffTime = request.KickoffTime;
+
+        await _dbContext.SaveChangesAsync();
+
+        var response = new AdminMatchResponse
+        {
+            Id = match.Id,
+            League = (await _dbContext.Leagues.FindAsync(match.LeagueId))!.Name,
+            HomeTeam = (await _dbContext.Teams.FindAsync(match.HomeTeamId))!.Name,
+            AwayTeam = (await _dbContext.Teams.FindAsync(match.AwayTeamId))!.Name,
+            KickoffTime = match.KickoffTime
+        };
+
+        return Ok(response);
+    }
 }
