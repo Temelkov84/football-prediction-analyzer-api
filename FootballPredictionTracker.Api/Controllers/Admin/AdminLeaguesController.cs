@@ -26,8 +26,22 @@ public class AdminLeaguesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateLeague(League league)
+    public async Task<IActionResult> CreateLeague(CreateLeagueRequest request)
     {
+        var leagueAlreadyExists = await _dbContext.Leagues
+            .AnyAsync(l => l.Name == request.Name && l.Country == request.Country);
+
+        if (leagueAlreadyExists)
+        {
+            return BadRequest("League already exists.");
+        }
+
+        var league = new League
+        {
+            Name = request.Name,
+            Country = request.Country
+        };
+
         _dbContext.Leagues.Add(league);
         await _dbContext.SaveChangesAsync();
 

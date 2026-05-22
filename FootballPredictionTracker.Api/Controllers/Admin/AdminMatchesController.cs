@@ -71,6 +71,18 @@ public class AdminMatchesController : ControllerBase
             return BadRequest("Away team does not exist.");
         }
 
+        var matchAlreadyExists = await _dbContext.Matches
+    .AnyAsync(m =>
+        m.LeagueId == request.LeagueId &&
+        m.HomeTeamId == request.HomeTeamId &&
+        m.AwayTeamId == request.AwayTeamId &&
+        m.KickoffTime == request.KickoffTime);
+
+        if (matchAlreadyExists)
+        {
+            return BadRequest("Match already exists.");
+        }
+
         var match = new Match
         {
             LeagueId = request.LeagueId,
@@ -123,6 +135,19 @@ public class AdminMatchesController : ControllerBase
         if (!awayTeamExists)
         {
             return BadRequest("Away team does not exist.");
+        }
+
+        var matchAlreadyExists = await _dbContext.Matches
+    .AnyAsync(m =>
+        m.Id != id &&
+        m.LeagueId == request.LeagueId &&
+        m.HomeTeamId == request.HomeTeamId &&
+        m.AwayTeamId == request.AwayTeamId &&
+        m.KickoffTime == request.KickoffTime);
+
+        if (matchAlreadyExists)
+        {
+            return BadRequest("Match already exists.");
         }
 
         match.LeagueId = request.LeagueId;

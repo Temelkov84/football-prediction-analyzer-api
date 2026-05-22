@@ -2,7 +2,7 @@
 
 namespace FootballPredictionTracker.Api.DTOs;
 
-public class UpdateLeagueRequest
+public class CreateLeagueRequest
 {
     [Required]
     [MinLength(2)]
