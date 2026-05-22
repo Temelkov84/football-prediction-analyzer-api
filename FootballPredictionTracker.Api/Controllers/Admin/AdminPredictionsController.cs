@@ -85,6 +85,19 @@ public class AdminPredictionsController : ControllerBase
         _dbContext.Predictions.Add(prediction);
         await _dbContext.SaveChangesAsync();
 
-        return Ok(prediction);
+        var response = new AdminPredictionResponse
+        {
+            Id = prediction.Id,
+            League = match.League.Name,
+            KickoffTime = match.KickoffTime,
+            HomeTeam = match.HomeTeam.Name,
+            AwayTeam = match.AwayTeam.Name,
+            HomeWinProbability = prediction.HomeWinProbability,
+            DrawProbability = prediction.DrawProbability,
+            AwayWinProbability = prediction.AwayWinProbability,
+            CreatedAt = prediction.CreatedAt
+        };
+
+        return Ok(response);
     }
 }
