@@ -2,6 +2,7 @@
 using FootballPredictionTracker.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FootballPredictionTracker.Api.DTOs;
 
 namespace FootballPredictionTracker.Api.Controllers.Admin;
 
@@ -32,6 +33,18 @@ public class AdminPredictionsController : ControllerBase
                 .ThenInclude(m => m.AwayTeam)
             .OrderBy(p => p.Match.League.Name)
             .ThenBy(p => p.Match.KickoffTime)
+            .Select(p => new AdminPredictionResponse
+            {
+                Id = p.Id,
+                League = p.Match.League.Name,
+                KickoffTime = p.Match.KickoffTime,
+                HomeTeam = p.Match.HomeTeam.Name,
+                AwayTeam = p.Match.AwayTeam.Name,
+                HomeWinProbability = p.HomeWinProbability,
+                DrawProbability = p.DrawProbability,
+                AwayWinProbability = p.AwayWinProbability,
+                CreatedAt = p.CreatedAt
+            })
             .ToListAsync();
 
         return Ok(predictions);

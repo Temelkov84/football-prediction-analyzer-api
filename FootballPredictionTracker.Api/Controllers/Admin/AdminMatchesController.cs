@@ -26,6 +26,14 @@ public class AdminMatchesController : ControllerBase
             .Include(m => m.AwayTeam)
             .OrderBy(m => m.League.Name)
             .ThenBy(m => m.KickoffTime)
+            .Select(m => new AdminMatchResponse
+            {
+                Id = m.Id,
+                League = m.League.Name,
+                HomeTeam = m.HomeTeam.Name,
+                AwayTeam = m.AwayTeam.Name,
+                KickoffTime = m.KickoffTime
+            })
             .ToListAsync();
 
         return Ok(matches);

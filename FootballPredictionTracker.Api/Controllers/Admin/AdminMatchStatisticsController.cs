@@ -27,6 +27,26 @@ public class AdminMatchStatisticsController : ControllerBase
                 .ThenInclude(m => m.AwayTeam)
             .Include(s => s.Match)
                 .ThenInclude(m => m.League)
+            .OrderBy(s => s.Match.League.Name)
+            .ThenBy(s => s.Match.KickoffTime)
+            .Select(s => new AdminMatchStatisticsResponse
+            {
+                Id = s.Id,
+                MatchId = s.MatchId,
+                League = s.Match.League.Name,
+                KickoffTime = s.Match.KickoffTime,
+                HomeTeam = s.Match.HomeTeam.Name,
+                AwayTeam = s.Match.AwayTeam.Name,
+                HomeTeamRecentWins = s.HomeTeamRecentWins,
+                HomeTeamRecentDraws = s.HomeTeamRecentDraws,
+                HomeTeamRecentLosses = s.HomeTeamRecentLosses,
+                AwayTeamRecentWins = s.AwayTeamRecentWins,
+                AwayTeamRecentDraws = s.AwayTeamRecentDraws,
+                AwayTeamRecentLosses = s.AwayTeamRecentLosses,
+                HeadToHeadHomeWins = s.HeadToHeadHomeWins,
+                HeadToHeadDraws = s.HeadToHeadDraws,
+                HeadToHeadAwayWins = s.HeadToHeadAwayWins
+            })
             .ToListAsync();
 
         return Ok(statistics);
