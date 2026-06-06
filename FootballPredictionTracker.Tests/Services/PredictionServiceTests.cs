@@ -1,4 +1,5 @@
 ﻿using FootballPredictionTracker.Api.DTOs;
+using FootballPredictionTracker.Api.Models;
 using FootballPredictionTracker.Api.Services;
 using NUnit.Framework;
 
@@ -8,70 +9,121 @@ namespace FootballPredictionTracker.Tests.Services
     public class PredictionServiceTests
     {
         [Test]
-        public void CalculatePrediction_WithValidStatistics_ShouldReturnProbabilitiesThatSumTo100()
+        public void CalculatePrediction_WithStrongHomeTeam_ShouldReturnHighestHomeWinProbability()
         {
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            PredictionRequest request = new PredictionRequest
+            Match match = new Match
             {
-                HomeTeam = "Arsenal",
-                AwayTeam = "Chelsea",
-                HeadToHeadHomeWins = 4,
-                HeadToHeadDraws = 2,
-                HeadToHeadAwayWins = 1,
-                HomeTeamRecentWins = 4,
+                Id = 1,
+                LeagueId = 1,
+                HomeTeamId = 1,
+                AwayTeamId = 2,
+                KickoffTime = DateTime.UtcNow
+            };
+
+            MatchStatistics statistics = new MatchStatistics
+            {
+                MatchId = 1,
+
+                HomeTeamRecentWins = 5,
                 HomeTeamRecentDraws = 1,
                 HomeTeamRecentLosses = 0,
-                AwayTeamRecentWins = 2,
+
+                AwayTeamRecentWins = 1,
                 AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 2
+                AwayTeamRecentLosses = 4,
+
+                HeadToHeadHomeWins = 4,
+                HeadToHeadDraws = 1,
+                HeadToHeadAwayWins = 1,
+
+                HomeTeamHomeWins = 5,
+                HomeTeamHomeDraws = 1,
+                HomeTeamHomeLosses = 0,
+
+                AwayTeamAwayWins = 1,
+                AwayTeamAwayDraws = 1,
+                AwayTeamAwayLosses = 4,
+
+                HomeTeamGoalsScored = 15,
+                HomeTeamGoalsConceded = 4,
+
+                AwayTeamGoalsScored = 5,
+                AwayTeamGoalsConceded = 14
             };
 
             // Act
-            PredictionResponse response = predictionService.CalculatePrediction(request);
+            Prediction prediction = predictionService.CalculatePrediction(match, statistics);
 
             // Assert
+            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.DrawProbability));
+            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.AwayWinProbability));
+
             int totalProbability =
-                response.HomeWinProbability +
-                response.DrawProbability +
-                response.AwayWinProbability;
+                prediction.HomeWinProbability +
+                prediction.DrawProbability +
+                prediction.AwayWinProbability;
 
             Assert.That(totalProbability, Is.EqualTo(100));
-            Assert.That(response.HomeTeam, Is.EqualTo("Arsenal"));
-            Assert.That(response.AwayTeam, Is.EqualTo("Chelsea"));
-            Assert.That(response.Explanation, Is.Not.Empty);
+            Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
         }
-
+     
         [Test]
         public void CalculatePrediction_WithNoStatistics_ShouldReturnBalancedProbabilities()
         {
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            PredictionRequest request = new PredictionRequest
+            Match match = new Match
             {
-                HomeTeam = "Arsenal",
-                AwayTeam = "Chelsea",
-                HeadToHeadHomeWins = 0,
-                HeadToHeadDraws = 0,
-                HeadToHeadAwayWins = 0,
+                Id = 2,
+                LeagueId = 1,
+                HomeTeamId = 2,
+                AwayTeamId = 3,
+                KickoffTime = DateTime.UtcNow
+            };
+
+            MatchStatistics statistics = new MatchStatistics
+            {
+                MatchId = 2,
+
                 HomeTeamRecentWins = 0,
                 HomeTeamRecentDraws = 0,
                 HomeTeamRecentLosses = 0,
+
                 AwayTeamRecentWins = 0,
                 AwayTeamRecentDraws = 0,
-                AwayTeamRecentLosses = 0
+                AwayTeamRecentLosses = 0,
+
+                HeadToHeadHomeWins = 0,
+                HeadToHeadDraws = 0,
+                HeadToHeadAwayWins = 0,
+
+                HomeTeamHomeWins = 0,
+                HomeTeamHomeDraws = 0,
+                HomeTeamHomeLosses = 0,
+
+                AwayTeamAwayWins = 0,
+                AwayTeamAwayDraws = 0,
+                AwayTeamAwayLosses = 0,
+
+                HomeTeamGoalsScored = 0,
+                HomeTeamGoalsConceded = 0,
+
+                AwayTeamGoalsScored = 0,
+                AwayTeamGoalsConceded = 0
             };
 
             // Act
-            PredictionResponse response = predictionService.CalculatePrediction(request);
+            Prediction prediction = predictionService.CalculatePrediction(match, statistics);
 
             // Assert
-            Assert.That(response.HomeWinProbability, Is.EqualTo(33));
-            Assert.That(response.DrawProbability, Is.EqualTo(34));
-            Assert.That(response.AwayWinProbability, Is.EqualTo(33));
-            Assert.That(response.Explanation, Is.EqualTo("Not enough statistical data. Probabilities are balanced by default."));
+            Assert.That(prediction.HomeWinProbability, Is.EqualTo(33));
+            Assert.That(prediction.DrawProbability, Is.EqualTo(34));
+            Assert.That(prediction.AwayWinProbability, Is.EqualTo(33));
+            Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
         }
 
         [Test]
@@ -80,58 +132,100 @@ namespace FootballPredictionTracker.Tests.Services
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            PredictionRequest request = new PredictionRequest
+            Match match = new Match
             {
-                HomeTeam = "Arsenal",
-                AwayTeam = "Chelsea",
-                HeadToHeadHomeWins = 5,
-                HeadToHeadDraws = 1,
-                HeadToHeadAwayWins = 0,
+                Id = 1,
+                LeagueId = 1,
+                HomeTeamId = 1,
+                AwayTeamId = 2,
+                KickoffTime = DateTime.UtcNow
+            };
+
+            MatchStatistics statistics = new MatchStatistics
+            {
+                MatchId = 1,
                 HomeTeamRecentWins = 5,
                 HomeTeamRecentDraws = 0,
                 HomeTeamRecentLosses = 0,
-                AwayTeamRecentWins = 1,
+                AwayTeamRecentWins = 0,
                 AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 3
+                AwayTeamRecentLosses = 4,
+                HeadToHeadHomeWins = 5,
+                HeadToHeadDraws = 0,
+                HeadToHeadAwayWins = 0,
+                HomeTeamHomeWins = 5,
+                HomeTeamHomeDraws = 0,
+                HomeTeamHomeLosses = 0,
+                AwayTeamAwayWins = 0,
+                AwayTeamAwayDraws = 1,
+                AwayTeamAwayLosses = 4,
+                HomeTeamGoalsScored = 20,
+                HomeTeamGoalsConceded = 2,
+                AwayTeamGoalsScored = 2,
+                AwayTeamGoalsConceded = 20
             };
 
             // Act
-            PredictionResponse response = predictionService.CalculatePrediction(request);
+            Prediction prediction = predictionService.CalculatePrediction(match, statistics);
 
             // Assert
-            Assert.That(response.HomeWinProbability, Is.GreaterThan(response.DrawProbability));
-            Assert.That(response.HomeWinProbability, Is.GreaterThan(response.AwayWinProbability));
-            Assert.That(response.Explanation, Is.EqualTo("The home team has the strongest statistical advantage based on the provided data."));
+            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.DrawProbability));
+            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.AwayWinProbability));
+            Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
         }
 
-        [Test]
+            [Test]
         public void CalculatePrediction_WhenAwayTeamHasStrongerStatistics_ShouldReturnAwayTeamAsHighestProbability()
         {
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            PredictionRequest request = new PredictionRequest
-            {
-                HomeTeam = "Arsenal",
-                AwayTeam = "Chelsea",
-                HeadToHeadHomeWins = 0,
-                HeadToHeadDraws = 1,
-                HeadToHeadAwayWins = 5,
-                HomeTeamRecentWins = 1,
-                HomeTeamRecentDraws = 1,
-                HomeTeamRecentLosses = 3,
-                AwayTeamRecentWins = 5,
-                AwayTeamRecentDraws = 0,
-                AwayTeamRecentLosses = 0
-            };
+                Match match = new Match
+                {
+                    Id = 1,
+                    LeagueId = 1,
+                    HomeTeamId = 1,
+                    AwayTeamId = 2,
+                    KickoffTime = DateTime.UtcNow
+                };
 
-            // Act
-            PredictionResponse response = predictionService.CalculatePrediction(request);
+                MatchStatistics statistics = new MatchStatistics
+                {
+                    MatchId = 1,
+                    HomeTeamRecentWins = 0,
+                    HomeTeamRecentDraws = 1,
+                    HomeTeamRecentLosses = 4,
 
+                    AwayTeamRecentWins = 5,
+                    AwayTeamRecentDraws = 0,
+                    AwayTeamRecentLosses = 0,
+
+                    HeadToHeadHomeWins = 0,
+                    HeadToHeadDraws = 1,
+                    HeadToHeadAwayWins = 5,
+
+                    HomeTeamHomeWins = 0,
+                    HomeTeamHomeDraws = 1,
+                    HomeTeamHomeLosses = 3,
+              
+                    AwayTeamAwayWins = 3,
+                    AwayTeamAwayDraws = 1,
+                    AwayTeamAwayLosses = 0,
+                   
+                    HomeTeamGoalsScored = 2,
+                    HomeTeamGoalsConceded = 2,
+                    
+                    AwayTeamGoalsScored = 12,
+                    AwayTeamGoalsConceded = 0
+                };
+                
+                //Act
+                Prediction prediction = predictionService.CalculatePrediction(match, statistics);
+
+            
             // Assert
-            Assert.That(response.AwayWinProbability, Is.GreaterThan(response.HomeWinProbability));
-            Assert.That(response.AwayWinProbability, Is.GreaterThan(response.DrawProbability));
-            Assert.That(response.Explanation, Is.EqualTo("The away team has the strongest statistical advantage based on the provided data."));
+            Assert.That(prediction.AwayWinProbability, Is.GreaterThan(prediction.HomeWinProbability));
+            Assert.That(prediction.AwayWinProbability, Is.GreaterThan(prediction.DrawProbability));
         }
 
         [Test]
@@ -140,33 +234,57 @@ namespace FootballPredictionTracker.Tests.Services
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            PredictionRequest request = new PredictionRequest
+            Match match = new Match
             {
-                HomeTeam = "Arsenal",
-                AwayTeam = "Chelsea",
+                Id = 1,
+                LeagueId = 1,
+                HomeTeamId = 1,
+                AwayTeamId = 2,
+                KickoffTime = DateTime.UtcNow
+            };
+
+            MatchStatistics statistics = new MatchStatistics
+            {
+                MatchId = 1,
+
+                HomeTeamRecentWins = 3,
+                HomeTeamRecentDraws = 1,
+                HomeTeamRecentLosses = 2,
+
+                AwayTeamRecentWins = 3,
+                AwayTeamRecentDraws = 1,
+                AwayTeamRecentLosses = 2,
+
                 HeadToHeadHomeWins = 2,
                 HeadToHeadDraws = 2,
                 HeadToHeadAwayWins = 2,
-                HomeTeamRecentWins = 2,
-                HomeTeamRecentDraws = 1,
-                HomeTeamRecentLosses = 2,
-                AwayTeamRecentWins = 2,
-                AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 2
+
+                HomeTeamHomeWins = 3,
+                HomeTeamHomeDraws = 2,
+                HomeTeamHomeLosses = 1,
+
+                AwayTeamAwayWins = 3,
+                AwayTeamAwayDraws = 2,
+                AwayTeamAwayLosses = 1,
+
+                HomeTeamGoalsScored = 10,
+                HomeTeamGoalsConceded = 7,
+
+                AwayTeamGoalsScored = 10,
+                AwayTeamGoalsConceded = 7
             };
 
             // Act
-            PredictionResponse response = predictionService.CalculatePrediction(request);
+           Prediction prediction = predictionService.CalculatePrediction(match, statistics);
 
             // Assert
-            Assert.That(response.Explanation, Is.EqualTo("The provided statistics suggest a balanced match with no clear dominant outcome."));
-
             int totalProbability =
-                response.HomeWinProbability +
-                response.DrawProbability +
-                response.AwayWinProbability;
+                prediction.HomeWinProbability +
+                prediction.DrawProbability +
+                prediction.AwayWinProbability;
 
             Assert.That(totalProbability, Is.EqualTo(100));
         }
+
     }
 }
