@@ -19,7 +19,7 @@ namespace FootballPredictionTracker.Api.Controllers
         [HttpGet("weekly")]
         public async Task<IActionResult> GetWeeklyPredictions()
         {
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.Date;
             var nextWeek = today.AddDays(7);
 
             var predictions = await dbContext.Predictions
