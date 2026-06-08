@@ -290,3 +290,9 @@ body {
   margin: 0 0 8px;
   color: #064e3b;
 }
+
+.admin-actions button.active {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}

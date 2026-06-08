@@ -15,6 +15,7 @@ import MatchesList from '../components/admin/MatchesList'
 import MatchStatisticsList from '../components/admin/MatchStatisticsList'
 import AdminPredictionsList from '../components/admin/AdminPredictionsList'
 
+
 function AdminDashboardPage() {
   const [leagues, setLeagues] = useState([])
   const [teams, setTeams] = useState([])
@@ -33,6 +34,8 @@ function AdminDashboardPage() {
   const [matchesError, setMatchesError] = useState('')
   const [statisticsError, setStatisticsError] = useState('')
   const [predictionsError, setPredictionsError] = useState('')
+
+  const [activeAdminSection, setActiveAdminSection] = useState('leagues')
 
   async function loadLeagues() {
     try {
@@ -122,79 +125,123 @@ function AdminDashboardPage() {
       <section className="card">
         <h2>Admin Actions</h2>
 
-        <div className="admin-actions">
-          <button type="button">Leagues</button>
-          <button type="button">Teams</button>
-          <button type="button">Matches</button>
-          <button type="button">Match Statistics</button>
-          <button type="button">Predictions</button>
-        </div>
+  <div className="admin-actions">
+  <button
+    type="button"
+    className={activeAdminSection === 'leagues' ? 'active' : ''}
+    onClick={() => setActiveAdminSection('leagues')}
+  >
+    Leagues
+  </button>
+
+  <button
+    type="button"
+    className={activeAdminSection === 'teams' ? 'active' : ''}
+    onClick={() => setActiveAdminSection('teams')}
+  >
+    Teams
+  </button>
+
+  <button
+    type="button"
+    className={activeAdminSection === 'matches' ? 'active' : ''}
+    onClick={() => setActiveAdminSection('matches')}
+  >
+    Matches
+  </button>
+
+  <button
+    type="button"
+    className={activeAdminSection === 'statistics' ? 'active' : ''}
+    onClick={() => setActiveAdminSection('statistics')}
+  >
+    Match Statistics
+  </button>
+
+  <button
+    type="button"
+    className={activeAdminSection === 'predictions' ? 'active' : ''}
+    onClick={() => setActiveAdminSection('predictions')}
+  >
+    Predictions
+  </button>
+</div>
       </section>
 
-      <section className="card admin-section">
-        <CreateLeagueForm onLeagueCreated={loadLeagues} />
+        {activeAdminSection === 'leagues' && (
+        <section className="card admin-section">
+          <CreateLeagueForm onLeagueCreated={loadLeagues} />
 
-        {isLoadingLeagues && <p>Loading leagues...</p>}
-        {leaguesError && <p className="error-message">{leaguesError}</p>}
+          {isLoadingLeagues && <p>Loading leagues...</p>}
+          {leaguesError && <p className="error-message">{leaguesError}</p>}
 
-        {!isLoadingLeagues && !leaguesError && (
-          <LeaguesList leagues={leagues} />
-        )}
-      </section>
+          {!isLoadingLeagues && !leaguesError && (
+            <LeaguesList leagues={leagues} />
+          )}
+        </section>
+      )}
 
-      <section className="card admin-section">
-        <CreateTeamForm leagues={leagues} onTeamCreated={loadTeams} />
+      {activeAdminSection === 'teams' && (
+        <section className="card admin-section">
+          <CreateTeamForm leagues={leagues} onTeamCreated={loadTeams} />
 
-        {isLoadingTeams && <p>Loading teams...</p>}
-        {teamsError && <p className="error-message">{teamsError}</p>}
+          {isLoadingTeams && <p>Loading teams...</p>}
+          {teamsError && <p className="error-message">{teamsError}</p>}
 
-        {!isLoadingTeams && !teamsError && (
-          <TeamsList teams={teams} />
-        )}
-      </section>
+          {!isLoadingTeams && !teamsError && (
+            <TeamsList teams={teams} />
+          )}
+        </section>
+      )}
 
-      <section className="card admin-section">
-        <CreateMatchForm
-          leagues={leagues}
-          teams={teams}
-          onMatchCreated={loadMatches}
-        />
+      {activeAdminSection === 'matches' && (
+        <section className="card admin-section">
+          <CreateMatchForm
+            leagues={leagues}
+            teams={teams}
+            onMatchCreated={loadMatches}
+          />
 
-        {isLoadingMatches && <p>Loading matches...</p>}
-        {matchesError && <p className="error-message">{matchesError}</p>}
+          {isLoadingMatches && <p>Loading matches...</p>}
+          {matchesError && <p className="error-message">{matchesError}</p>}
 
-        {!isLoadingMatches && !matchesError && (
-          <MatchesList matches={matches} />
-        )}
-      </section>
+          {!isLoadingMatches && !matchesError && (
+            <MatchesList matches={matches} />
+          )}
+        </section>
+      )}
 
-      <section className="card admin-section">
-        <CreateMatchStatisticsForm
-          matches={matches}
-          onStatisticsCreated={loadMatchStatistics}
-        />
+      {activeAdminSection === 'statistics' && (
+        <section className="card admin-section">
+          <CreateMatchStatisticsForm
+            matches={matches}
+            onStatisticsCreated={loadMatchStatistics}
+          />
 
-        {isLoadingStatistics && <p>Loading match statistics...</p>}
-        {statisticsError && <p className="error-message">{statisticsError}</p>}
+          {isLoadingStatistics && <p>Loading match statistics...</p>}
+          {statisticsError && <p className="error-message">{statisticsError}</p>}
 
-        {!isLoadingStatistics && !statisticsError && (
-          <MatchStatisticsList statistics={matchStatistics} />
-        )}
-      </section>
+          {!isLoadingStatistics && !statisticsError && (
+            <MatchStatisticsList statistics={matchStatistics} />
+          )}
+        </section>
+      )}
 
-      <section className="card admin-section">
-        <CalculatePredictionForm
-          matches={matches}
-          onPredictionCalculated={loadPredictions}
-        />
+      {activeAdminSection === 'predictions' && (
+        <section className="card admin-section">
+          <CalculatePredictionForm
+            matches={matches}
+            onPredictionCalculated={loadPredictions}
+          />
 
-        {isLoadingPredictions && <p>Loading predictions...</p>}
-        {predictionsError && <p className="error-message">{predictionsError}</p>}
+          {isLoadingPredictions && <p>Loading predictions...</p>}
+          {predictionsError && <p className="error-message">{predictionsError}</p>}
 
-        {!isLoadingPredictions && !predictionsError && (
-          <AdminPredictionsList predictions={predictions} />
-        )}
-      </section>
+          {!isLoadingPredictions && !predictionsError && (
+            <AdminPredictionsList predictions={predictions} />
+          )}
+        </section>
+      )}
     </main>
   )
 }
