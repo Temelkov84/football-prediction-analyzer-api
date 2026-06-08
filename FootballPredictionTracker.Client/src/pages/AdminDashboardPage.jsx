@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react'
 import { getLeagues } from '../api/leaguesApi'
 import { getTeams } from '../api/teamsApi'
+import { getMatches } from '../api/matchesApi'
 import CreateLeagueForm from '../components/admin/CreateLeagueForm'
 import CreateTeamForm from '../components/admin/CreateTeamForm'
+import CreateMatchForm from '../components/admin/CreateMatchForm'
 import LeaguesList from '../components/admin/LeaguesList'
 import TeamsList from '../components/admin/TeamsList'
+import MatchesList from '../components/admin/MatchesList'
 
 function AdminDashboardPage() {
   const [leagues, setLeagues] = useState([])
   const [teams, setTeams] = useState([])
+  const [matches, setMatches] = useState([])
 
   const [isLoadingLeagues, setIsLoadingLeagues] = useState(true)
   const [isLoadingTeams, setIsLoadingTeams] = useState(true)
+  const [isLoadingMatches, setIsLoadingMatches] = useState(true)
 
   const [leaguesError, setLeaguesError] = useState('')
   const [teamsError, setTeamsError] = useState('')
+  const [matchesError, setMatchesError] = useState('')
 
   async function loadLeagues() {
     try {
@@ -44,9 +50,24 @@ function AdminDashboardPage() {
     }
   }
 
+  async function loadMatches() {
+    try {
+      setMatchesError('')
+      setIsLoadingMatches(true)
+
+      const data = await getMatches()
+      setMatches(data)
+    } catch (error) {
+      setMatchesError(error.message)
+    } finally {
+      setIsLoadingMatches(false)
+    }
+  }
+
   useEffect(() => {
     loadLeagues()
     loadTeams()
+    loadMatches()
   }, [])
 
   return (
@@ -87,6 +108,21 @@ function AdminDashboardPage() {
 
         {!isLoadingTeams && !teamsError && (
           <TeamsList teams={teams} />
+        )}
+      </section>
+
+      <section className="card admin-section">
+        <CreateMatchForm
+          leagues={leagues}
+          teams={teams}
+          onMatchCreated={loadMatches}
+        />
+
+        {isLoadingMatches && <p>Loading matches...</p>}
+        {matchesError && <p className="error-message">{matchesError}</p>}
+
+        {!isLoadingMatches && !matchesError && (
+          <MatchesList matches={matches} />
         )}
       </section>
     </main>
