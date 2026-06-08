@@ -2,25 +2,31 @@ import { useEffect, useState } from 'react'
 import { getLeagues } from '../api/leaguesApi'
 import { getTeams } from '../api/teamsApi'
 import { getMatches } from '../api/matchesApi'
+import { getMatchStatistics } from '../api/matchStatisticsApi'
 import CreateLeagueForm from '../components/admin/CreateLeagueForm'
 import CreateTeamForm from '../components/admin/CreateTeamForm'
 import CreateMatchForm from '../components/admin/CreateMatchForm'
+import CreateMatchStatisticsForm from '../components/admin/CreateMatchStatisticsForm'
 import LeaguesList from '../components/admin/LeaguesList'
 import TeamsList from '../components/admin/TeamsList'
 import MatchesList from '../components/admin/MatchesList'
+import MatchStatisticsList from '../components/admin/MatchStatisticsList'
 
 function AdminDashboardPage() {
   const [leagues, setLeagues] = useState([])
   const [teams, setTeams] = useState([])
   const [matches, setMatches] = useState([])
+  const [matchStatistics, setMatchStatistics] = useState([])
 
   const [isLoadingLeagues, setIsLoadingLeagues] = useState(true)
   const [isLoadingTeams, setIsLoadingTeams] = useState(true)
   const [isLoadingMatches, setIsLoadingMatches] = useState(true)
+  const [isLoadingStatistics, setIsLoadingStatistics] = useState(true)
 
   const [leaguesError, setLeaguesError] = useState('')
   const [teamsError, setTeamsError] = useState('')
   const [matchesError, setMatchesError] = useState('')
+  const [statisticsError, setStatisticsError] = useState('')
 
   async function loadLeagues() {
     try {
@@ -64,10 +70,25 @@ function AdminDashboardPage() {
     }
   }
 
+  async function loadMatchStatistics() {
+    try {
+      setStatisticsError('')
+      setIsLoadingStatistics(true)
+
+      const data = await getMatchStatistics()
+      setMatchStatistics(data)
+    } catch (error) {
+      setStatisticsError(error.message)
+    } finally {
+      setIsLoadingStatistics(false)
+    }
+  }
+
   useEffect(() => {
     loadLeagues()
     loadTeams()
     loadMatches()
+    loadMatchStatistics()
   }, [])
 
   return (
@@ -123,6 +144,20 @@ function AdminDashboardPage() {
 
         {!isLoadingMatches && !matchesError && (
           <MatchesList matches={matches} />
+        )}
+      </section>
+
+      <section className="card admin-section">
+        <CreateMatchStatisticsForm
+          matches={matches}
+          onStatisticsCreated={loadMatchStatistics}
+        />
+
+        {isLoadingStatistics && <p>Loading match statistics...</p>}
+        {statisticsError && <p className="error-message">{statisticsError}</p>}
+
+        {!isLoadingStatistics && !statisticsError && (
+          <MatchStatisticsList statistics={matchStatistics} />
         )}
       </section>
     </main>
