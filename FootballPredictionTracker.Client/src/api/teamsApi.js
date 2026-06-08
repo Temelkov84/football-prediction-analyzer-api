@@ -25,3 +25,29 @@ export async function createTeam(team) {
 
   return data
 }
+
+export async function updateTeam(id, team) {
+  const response = await fetch(`/api/admin/teams/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(team),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.message || 'Failed to update team.')
+  }
+}
+
+export async function deleteTeam(id) {
+  const response = await fetch(`/api/admin/teams/${id}`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.message || 'Failed to delete team.')
+  }
+}

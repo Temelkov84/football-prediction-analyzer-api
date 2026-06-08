@@ -25,3 +25,29 @@ export async function createLeague(league) {
 
   return data
 }
+
+export async function updateLeague(id, league) {
+  const response = await fetch(`/api/admin/leagues/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(league),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.message || 'Failed to update league.')
+  }
+}
+
+export async function deleteLeague(id) {
+  const response = await fetch(`/api/admin/leagues/${id}`, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json()
+    throw new Error(errorData.message || 'Failed to delete league.')
+  }
+}

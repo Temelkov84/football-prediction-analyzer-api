@@ -14,6 +14,7 @@ import TeamsList from '../components/admin/TeamsList'
 import MatchesList from '../components/admin/MatchesList'
 import MatchStatisticsList from '../components/admin/MatchStatisticsList'
 import AdminPredictionsList from '../components/admin/AdminPredictionsList'
+import { clearWeeklyData } from '../api/weeklyDataApi'
 
 
 function AdminDashboardPage() {
@@ -34,6 +35,10 @@ function AdminDashboardPage() {
   const [matchesError, setMatchesError] = useState('')
   const [statisticsError, setStatisticsError] = useState('')
   const [predictionsError, setPredictionsError] = useState('')
+
+  const [clearWeeklyDataMessage, setClearWeeklyDataMessage] = useState('')
+  const [clearWeeklyDataError, setClearWeeklyDataError] = useState('')
+  const [isClearingWeeklyData, setIsClearingWeeklyData] = useState(false)
 
   const [activeAdminSection, setActiveAdminSection] = useState('leagues')
 
@@ -107,6 +112,36 @@ function AdminDashboardPage() {
     }
   }
 
+  async function handleClearWeeklyData() {
+  const confirmed = window.confirm(
+    'Are you sure you want to delete all matches, match statistics, and predictions? Leagues and teams will remain.'
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  try {
+    setClearWeeklyDataMessage('')
+    setClearWeeklyDataError('')
+    setIsClearingWeeklyData(true)
+
+    const result = await clearWeeklyData()
+
+    await loadMatches()
+    await loadMatchStatistics()
+    await loadPredictions()
+
+    setClearWeeklyDataMessage(
+      `${result.message} Deleted matches: ${result.deletedMatches}, deleted match statistics: ${result.deletedMatchStatistics}, deleted predictions: ${result.deletedPredictions}.`
+    )
+  } catch (error) {
+    setClearWeeklyDataError(error.message)
+  } finally {
+    setIsClearingWeeklyData(false)
+  }
+}
+
   useEffect(() => {
     loadLeagues()
     loadTeams()
@@ -176,7 +211,10 @@ function AdminDashboardPage() {
           {leaguesError && <p className="error-message">{leaguesError}</p>}
 
           {!isLoadingLeagues && !leaguesError && (
-            <LeaguesList leagues={leagues} />
+            <LeaguesList
+              leagues={leagues}
+              onLeagueChanged={loadLeagues}
+            />
           )}
         </section>
       )}
@@ -189,7 +227,11 @@ function AdminDashboardPage() {
           {teamsError && <p className="error-message">{teamsError}</p>}
 
           {!isLoadingTeams && !teamsError && (
-            <TeamsList teams={teams} />
+          <TeamsList
+            teams={teams}
+            leagues={leagues}
+            onTeamChanged={loadTeams}
+          />
           )}
         </section>
       )}
@@ -227,21 +269,45 @@ function AdminDashboardPage() {
         </section>
       )}
 
-      {activeAdminSection === 'predictions' && (
-        <section className="card admin-section">
-          <CalculatePredictionForm
-            matches={matches}
-            onPredictionCalculated={loadPredictions}
-          />
+    {activeAdminSection === 'predictions' && (
+  <section className="card admin-section">
+    <CalculatePredictionForm
+      matches={matches}
+      onPredictionCalculated={loadPredictions}
+    />
 
-          {isLoadingPredictions && <p>Loading predictions...</p>}
-          {predictionsError && <p className="error-message">{predictionsError}</p>}
+    <div className="danger-zone">
+      <h3>Weekly Data Cleanup</h3>
+      <p>
+        Delete all matches, match statistics, and predictions. Leagues and teams will remain.
+      </p>
 
-          {!isLoadingPredictions && !predictionsError && (
-            <AdminPredictionsList predictions={predictions} />
-          )}
-        </section>
+      <button
+        type="button"
+        className="danger-button"
+        onClick={handleClearWeeklyData}
+        disabled={isClearingWeeklyData}
+      >
+        {isClearingWeeklyData ? 'Clearing...' : 'Clear Weekly Data'}
+      </button>
+
+      {clearWeeklyDataMessage && (
+        <p className="success-message">{clearWeeklyDataMessage}</p>
       )}
+
+      {clearWeeklyDataError && (
+        <p className="error-message">{clearWeeklyDataError}</p>
+      )}
+    </div>
+
+    {isLoadingPredictions && <p>Loading predictions...</p>}
+    {predictionsError && <p className="error-message">{predictionsError}</p>}
+
+    {!isLoadingPredictions && !predictionsError && (
+      <AdminPredictionsList predictions={predictions} />
+    )}
+  </section>
+)}
     </main>
   )
 }

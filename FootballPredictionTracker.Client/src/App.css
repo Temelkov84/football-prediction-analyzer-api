@@ -296,3 +296,66 @@ body {
   color: #ffffff;
   border-color: #111827;
 }
+
+.predictions-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.prediction-league-group {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.prediction-league-group h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #111827;
+  font-size: 24px;
+}
+
+.match-cell {
+  font-weight: 700;
+  color: #111827;
+}
+
+.prediction-percent {
+  font-weight: 700;
+  text-align: center;
+}
+
+.danger-zone {
+  margin-top: 32px;
+  margin-bottom: 32px;
+  padding: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+}
+
+.danger-zone h3 {
+  margin-top: 0;
+  color: #991b1b;
+}
+
+.danger-zone p {
+  color: #7f1d1d;
+}
+
+.danger-button {
+  border: none;
+  background: #b91c1c;
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.danger-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

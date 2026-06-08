@@ -58,7 +58,9 @@ function PredictionsTable({ predictions }) {
           key={`${group.countryName}-${group.leagueName}`}
           className="prediction-league-group"
         >
-          <h2>{group.leagueName}</h2>
+     <h2>
+        {group.countryName !== '-' ? `${group.countryName} — ${group.leagueName}` : group.leagueName}
+     </h2>
 
           <div className="table-wrapper">
             <table className="predictions-table">
@@ -84,12 +86,12 @@ function PredictionsTable({ predictions }) {
                       <td>{formatKickoffTime(prediction.kickoffTime)}</td>
                       <td>{getCountryName(prediction)}</td>
                       <td>{getLeagueName(prediction)}</td>
-                      <td>
+                      <td className="match-cell">
                         {prediction.homeTeam} vs {prediction.awayTeam}
-                      </td>
-                      <td>{prediction.homeWinProbability}%</td>
-                      <td>{prediction.drawProbability}%</td>
-                      <td>{prediction.awayWinProbability}%</td>
+                     </td>   
+                      <td className="prediction-percent">{prediction.homeWinProbability}%</td>
+                      <td className="prediction-percent">{prediction.drawProbability}%</td>
+                      <td className="prediction-percent">{prediction.awayWinProbability}%</td>
                     </tr>
                   ))}
               </tbody>
