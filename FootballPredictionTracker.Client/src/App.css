@@ -276,3 +276,17 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.prediction-result {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #d1fae5;
+  border-radius: 8px;
+  background: #ecfdf5;
+  color: #064e3b;
+}
+
+.prediction-result h4 {
+  margin: 0 0 8px;
+  color: #064e3b;
+}

@@ -3,30 +3,36 @@ import { getLeagues } from '../api/leaguesApi'
 import { getTeams } from '../api/teamsApi'
 import { getMatches } from '../api/matchesApi'
 import { getMatchStatistics } from '../api/matchStatisticsApi'
+import { getAdminPredictions } from '../api/adminPredictionsApi'
 import CreateLeagueForm from '../components/admin/CreateLeagueForm'
 import CreateTeamForm from '../components/admin/CreateTeamForm'
 import CreateMatchForm from '../components/admin/CreateMatchForm'
 import CreateMatchStatisticsForm from '../components/admin/CreateMatchStatisticsForm'
+import CalculatePredictionForm from '../components/admin/CalculatePredictionForm'
 import LeaguesList from '../components/admin/LeaguesList'
 import TeamsList from '../components/admin/TeamsList'
 import MatchesList from '../components/admin/MatchesList'
 import MatchStatisticsList from '../components/admin/MatchStatisticsList'
+import AdminPredictionsList from '../components/admin/AdminPredictionsList'
 
 function AdminDashboardPage() {
   const [leagues, setLeagues] = useState([])
   const [teams, setTeams] = useState([])
   const [matches, setMatches] = useState([])
   const [matchStatistics, setMatchStatistics] = useState([])
+  const [predictions, setPredictions] = useState([])
 
   const [isLoadingLeagues, setIsLoadingLeagues] = useState(true)
   const [isLoadingTeams, setIsLoadingTeams] = useState(true)
   const [isLoadingMatches, setIsLoadingMatches] = useState(true)
   const [isLoadingStatistics, setIsLoadingStatistics] = useState(true)
+  const [isLoadingPredictions, setIsLoadingPredictions] = useState(true)
 
   const [leaguesError, setLeaguesError] = useState('')
   const [teamsError, setTeamsError] = useState('')
   const [matchesError, setMatchesError] = useState('')
   const [statisticsError, setStatisticsError] = useState('')
+  const [predictionsError, setPredictionsError] = useState('')
 
   async function loadLeagues() {
     try {
@@ -84,11 +90,26 @@ function AdminDashboardPage() {
     }
   }
 
+  async function loadPredictions() {
+    try {
+      setPredictionsError('')
+      setIsLoadingPredictions(true)
+
+      const data = await getAdminPredictions()
+      setPredictions(data)
+    } catch (error) {
+      setPredictionsError(error.message)
+    } finally {
+      setIsLoadingPredictions(false)
+    }
+  }
+
   useEffect(() => {
     loadLeagues()
     loadTeams()
     loadMatches()
     loadMatchStatistics()
+    loadPredictions()
   }, [])
 
   return (
@@ -158,6 +179,20 @@ function AdminDashboardPage() {
 
         {!isLoadingStatistics && !statisticsError && (
           <MatchStatisticsList statistics={matchStatistics} />
+        )}
+      </section>
+
+      <section className="card admin-section">
+        <CalculatePredictionForm
+          matches={matches}
+          onPredictionCalculated={loadPredictions}
+        />
+
+        {isLoadingPredictions && <p>Loading predictions...</p>}
+        {predictionsError && <p className="error-message">{predictionsError}</p>}
+
+        {!isLoadingPredictions && !predictionsError && (
+          <AdminPredictionsList predictions={predictions} />
         )}
       </section>
     </main>
