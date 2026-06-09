@@ -4,6 +4,7 @@ using FootballPredictionTracker.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FootballPredictionTracker.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609145225_UpdatePredictionParameterWeights")]
+    partial class UpdatePredictionParameterWeights
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -205,80 +208,6 @@ namespace FootballPredictionTracker.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PredictionParameterWeights");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            IsActive = true,
-                            Key = "recent_form",
-                            Name = "Recent Form",
-                            Value = 16m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            IsActive = true,
-                            Key = "home_away_form",
-                            Name = "Home/Away Form",
-                            Value = 18m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            IsActive = true,
-                            Key = "xg",
-                            Name = "xG",
-                            Value = 16m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            IsActive = true,
-                            Key = "attack_strength",
-                            Name = "Attack Strength",
-                            Value = 11m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            IsActive = true,
-                            Key = "defense_strength",
-                            Name = "Defense Strength",
-                            Value = 12m
-                        },
-                        new
-                        {
-                            Id = 6,
-                            IsActive = true,
-                            Key = "shots_on_target",
-                            Name = "Shots on Target",
-                            Value = 11m
-                        },
-                        new
-                        {
-                            Id = 7,
-                            IsActive = true,
-                            Key = "head_to_head",
-                            Name = "Head-to-Head",
-                            Value = 6m
-                        },
-                        new
-                        {
-                            Id = 8,
-                            IsActive = true,
-                            Key = "key_players_missing",
-                            Name = "Key Players Missing",
-                            Value = 5m
-                        },
-                        new
-                        {
-                            Id = 9,
-                            IsActive = true,
-                            Key = "fatigue",
-                            Name = "Fatigue",
-                            Value = 5m
-                        });
                 });
 
             modelBuilder.Entity("FootballPredictionTracker.Api.Models.Team", b =>

@@ -2,6 +2,7 @@
 
 public class WeeklyPredictionResponse
 {
+    public string Country { get; set; } = string.Empty;
     public string League { get; set; } = string.Empty;
 
     public DateTime KickoffTime { get; set; }

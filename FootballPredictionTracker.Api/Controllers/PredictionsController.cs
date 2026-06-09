@@ -1,5 +1,6 @@
 ﻿using FootballPredictionTracker.Api.Data;
 using FootballPredictionTracker.Api.DTOs;
+using FootballPredictionTracker.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,7 @@ namespace FootballPredictionTracker.Api.Controllers
                 .ThenBy(p => p.Match.KickoffTime)
                 .Select(p => new WeeklyPredictionResponse
                 {
+                    Country = p.Match.League.Country,
                     League = p.Match.League.Name,
                     KickoffTime = p.Match.KickoffTime,
                     HomeTeam = p.Match.HomeTeam.Name,

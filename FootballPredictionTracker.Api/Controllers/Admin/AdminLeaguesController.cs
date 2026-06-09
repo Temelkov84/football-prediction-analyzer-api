@@ -90,25 +90,33 @@ public class AdminLeaguesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteLeague(int id)
     {
-        var league = await _dbContext.Leagues
-            .FirstOrDefaultAsync(l => l.Id == id);
+        var league = await _dbContext.Leagues.FindAsync(id);
 
         if (league == null)
         {
             return NotFound(new ErrorResponse
             {
-                Message = "League does not exist."
+                Message = "League not found."
             });
         }
 
-        var leagueHasTeams = await _dbContext.Teams
-            .AnyAsync(t => t.LeagueId == id);
+        var hasTeams = await _dbContext.Teams.AnyAsync(t => t.LeagueId == id);
 
-        if (leagueHasTeams)
+        if (hasTeams)
         {
             return BadRequest(new ErrorResponse
             {
-                Message = "Cannot delete league while it has teams."
+                Message = "League cannot be deleted because it has teams."
+            });
+        }
+
+        var hasMatches = await _dbContext.Matches.AnyAsync(m => m.LeagueId == id);
+
+        if (hasMatches)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Message = "League cannot be deleted because it has matches."
             });
         }
 
