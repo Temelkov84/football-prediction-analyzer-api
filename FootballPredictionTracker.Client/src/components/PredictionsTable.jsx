@@ -85,6 +85,22 @@ function getProbabilityStrengthClass(probability) {
     return 'probability-strength-1'
 }
 
+function getLeagueDisplayOrder(group) {
+    const displayOrder = {
+        'England-Premier League': 1,
+        'England-Championship': 2,
+        'Spain-La Liga': 3,
+        'Germany-Bundesliga': 4,
+        'Italy-Serie A': 5,
+        'France-Ligue 1': 6,
+        'Netherlands-Eredivisie': 7,
+    }
+
+    const key = `${group.countryName}-${group.leagueName}`
+
+    return displayOrder[key] || 999
+}
+
 function PredictionsTable({ predictions }) {
     if (!predictions || predictions.length === 0) {
         return <p>No predictions available for this week.</p>
@@ -93,7 +109,7 @@ function PredictionsTable({ predictions }) {
     const groupedPredictions = groupPredictionsByLeague(predictions)
 
     const predictionGroups = Object.values(groupedPredictions).sort((firstGroup, secondGroup) =>
-        firstGroup.leagueName.localeCompare(secondGroup.leagueName)
+        getLeagueDisplayOrder(firstGroup) - getLeagueDisplayOrder(secondGroup)
     )
 
     return (
@@ -104,16 +120,24 @@ function PredictionsTable({ predictions }) {
                     className="league-section"
                 >
                     <div className="league-header">
-                        <h3>
+                        <h3 className="league-title">
                             {group.countryName !== '-' && (
                                 <span
                                     className={`league-flag ${getCountryFlagClass(group.countryName)}`}
                                 ></span>
                             )}
 
-                            {group.countryName !== '-'
-                                ? `${group.countryName} — ${group.leagueName}`
-                                : group.leagueName}
+                            <span className="league-title-text">
+                                {group.countryName !== '-' ? (
+                                    <>
+                                        <span className="league-country">{group.countryName}</span>
+                                        <span className="league-separator">-</span>
+                                        <span className="league-name">{group.leagueName}</span>
+                                    </>
+                                ) : (
+                                    <span className="league-name">{group.leagueName}</span>
+                                )}
+                            </span>
                         </h3>
 
                         <span className="match-count">{group.predictions.length} matches</span>
@@ -181,6 +205,62 @@ function PredictionsTable({ predictions }) {
                                     ))}
                             </tbody>
                         </table>
+                    </div>
+                    <div className="mobile-prediction-cards">
+                        {group.predictions
+                            .sort((firstPrediction, secondPrediction) =>
+                                new Date(firstPrediction.kickoffTime) -
+                                new Date(secondPrediction.kickoffTime)
+                            )
+                            .map((prediction) => (
+                                <article
+                                    key={`mobile-${prediction.id}`}
+                                    className="mobile-prediction-card"
+                                >
+                                    <div className="mobile-prediction-time">
+                                        {formatKickoffTime(prediction.kickoffTime)}
+                                    </div>
+
+                                    <div className="mobile-prediction-match">
+                                        {prediction.homeTeam} vs {prediction.awayTeam}
+                                    </div>
+
+                                    <div className="mobile-probabilities">
+                                        <div>
+                                            <span className="mobile-probability-label">1</span>
+                                            <span
+                                                className={`probability-badge ${getProbabilityStrengthClass(
+                                                    prediction.homeWinProbability
+                                                )}`}
+                                            >
+                                                {prediction.homeWinProbability}%
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <span className="mobile-probability-label">X</span>
+                                            <span
+                                                className={`probability-badge ${getProbabilityStrengthClass(
+                                                    prediction.drawProbability
+                                                )}`}
+                                            >
+                                                {prediction.drawProbability}%
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <span className="mobile-probability-label">2</span>
+                                            <span
+                                                className={`probability-badge ${getProbabilityStrengthClass(
+                                                    prediction.awayWinProbability
+                                                )}`}
+                                            >
+                                                {prediction.awayWinProbability}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
                     </div>
                 </section>
             ))}

@@ -334,6 +334,25 @@ body {
   color: #111827;
 }
 
+.league-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.league-title-text {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  min-width: 0;
+}
+
+.league-country,
+.league-name {
+  white-space: nowrap;
+}
+
 .match-count {
   padding: 4px 10px;
   border-radius: 999px;
@@ -341,6 +360,7 @@ body {
   color: #4b5563;
   font-size: 0.85rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .table-wrapper {
@@ -462,22 +482,35 @@ body {
   }
 }
 
+.league-separator {
+  color: #6b7280;
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
-  .app-header-content {
+  .league-title {
     align-items: flex-start;
+  }
+
+  .league-title-text {
+    display: flex;
     flex-direction: column;
+    gap: 2px;
+    line-height: 1.2;
   }
 
-  .app-nav {
-    width: 100%;
+  .league-separator {
+    display: none;
   }
 
-  .nav-button {
-    flex: 1;
+  .league-country {
+    font-size: 0.8rem;
+    color: #6b7280;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
+  .league-name {
+    font-size: 1rem;
+    color: #111827;
   }
 }
 
@@ -501,65 +534,129 @@ body {
 
 /* Germany */
 .league-flag-germany {
-  background: linear-gradient(
-    to bottom,
-    #000000 0%,
-    #000000 33.33%,
-    #dd0000 33.33%,
-    #dd0000 66.66%,
-    #ffce00 66.66%,
-    #ffce00 100%
-  );
+  background: linear-gradient(to bottom,
+      #000000 0%,
+      #000000 33.33%,
+      #dd0000 33.33%,
+      #dd0000 66.66%,
+      #ffce00 66.66%,
+      #ffce00 100%);
 }
 
 /* Spain */
 .league-flag-spain {
-  background: linear-gradient(
-    to bottom,
-    #aa151b 0%,
-    #aa151b 25%,
-    #f1bf00 25%,
-    #f1bf00 75%,
-    #aa151b 75%,
-    #aa151b 100%
-  );
+  background: linear-gradient(to bottom,
+      #aa151b 0%,
+      #aa151b 25%,
+      #f1bf00 25%,
+      #f1bf00 75%,
+      #aa151b 75%,
+      #aa151b 100%);
 }
 
 /* Italy */
 .league-flag-italy {
-  background: linear-gradient(
-    to right,
-    #009246 0%,
-    #009246 33.33%,
-    #ffffff 33.33%,
-    #ffffff 66.66%,
-    #ce2b37 66.66%,
-    #ce2b37 100%
-  );
+  background: linear-gradient(to right,
+      #009246 0%,
+      #009246 33.33%,
+      #ffffff 33.33%,
+      #ffffff 66.66%,
+      #ce2b37 66.66%,
+      #ce2b37 100%);
 }
 
 /* France */
 .league-flag-france {
-  background: linear-gradient(
-    to right,
-    #0055a4 0%,
-    #0055a4 33.33%,
-    #ffffff 33.33%,
-    #ffffff 66.66%,
-    #ef4135 66.66%,
-    #ef4135 100%
-  );
+  background: linear-gradient(to right,
+      #0055a4 0%,
+      #0055a4 33.33%,
+      #ffffff 33.33%,
+      #ffffff 66.66%,
+      #ef4135 66.66%,
+      #ef4135 100%);
 }
 
 /* Netherlands */
 .league-flag-netherlands {
-  background: linear-gradient(
-    to bottom,
-    #ae1c28 0%,
-    #ae1c28 33.33%,
-    #ffffff 33.33%,
-    #ffffff 66.66%,
-    #21468b 66.66%,
-    #21468b 100%
-  );
+  background: linear-gradient(to bottom,
+      #ae1c28 0%,
+      #ae1c28 33.33%,
+      #ffffff 33.33%,
+      #ffffff 66.66%,
+      #21468b 66.66%,
+      #21468b 100%);
+}
+
+.mobile-prediction-cards {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .league-section {
+    padding: 14px;
+  }
+
+  .league-header {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .league-header h3 {
+    font-size: 1rem;
+  }
+
+  .table-wrapper {
+    display: none;
+  }
+
+  .mobile-prediction-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .mobile-prediction-card {
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+  }
+
+  .mobile-prediction-time {
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .mobile-prediction-match {
+    margin-bottom: 12px;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .mobile-probabilities {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .mobile-probabilities>div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mobile-probability-label {
+    color: #4b5563;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .probability-badge {
+    min-width: 54px;
+  }
 }
