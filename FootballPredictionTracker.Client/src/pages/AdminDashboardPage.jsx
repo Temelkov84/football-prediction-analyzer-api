@@ -273,8 +273,9 @@ function AdminDashboardPage() {
   <section className="card admin-section">
     <CalculatePredictionForm
       matches={matches}
+      predictions={predictions}
       onPredictionCalculated={loadPredictions}
-    />
+/>
 
     <div className="danger-zone">
       <h3>Weekly Data Cleanup</h3>

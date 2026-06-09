@@ -13,6 +13,11 @@ function MatchStatisticsList({ statistics }) {
     return <p>No match statistics created yet.</p>
   }
 
+  const sortedStatistics = [...statistics].sort(
+    (firstItem, secondItem) =>
+      new Date(firstItem.kickoffTime) - new Date(secondItem.kickoffTime)
+  )
+
   return (
     <div className="admin-list">
       <h3>Existing Match Statistics</h3>
@@ -28,7 +33,7 @@ function MatchStatisticsList({ statistics }) {
         </thead>
 
         <tbody>
-          {statistics.map((item) => (
+          {sortedStatistics.map((item) => (
             <tr key={item.id}>
               <td>{item.id}</td>
               <td>

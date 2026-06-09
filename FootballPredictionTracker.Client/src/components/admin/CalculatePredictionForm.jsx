@@ -13,12 +13,27 @@ function formatMatchLabel(match) {
   return `${match.league} | ${match.homeTeam} vs ${match.awayTeam} | ${kickoffTime}`
 }
 
-function CalculatePredictionForm({ matches, onPredictionCalculated }) {
+function createMatchKey(item) {
+  return `${item.league}|${item.homeTeam}|${item.awayTeam}|${item.kickoffTime}`
+}
+
+function CalculatePredictionForm({ matches, predictions, onPredictionCalculated }) {
   const [matchId, setMatchId] = useState('')
   const [calculatedPrediction, setCalculatedPrediction] = useState(null)
   const [successMessage, setSuccessMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const predictedMatchKeys = predictions.map((prediction) =>
+    createMatchKey(prediction)
+  )
+
+  const availableMatches = matches
+    .filter((match) => !predictedMatchKeys.includes(createMatchKey(match)))
+    .sort(
+      (firstMatch, secondMatch) =>
+        new Date(firstMatch.kickoffTime) - new Date(secondMatch.kickoffTime)
+    )
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -33,7 +48,9 @@ function CalculatePredictionForm({ matches, onPredictionCalculated }) {
 
       setCalculatedPrediction(prediction)
       setSuccessMessage('Prediction calculated successfully.')
-      onPredictionCalculated()
+
+      await onPredictionCalculated()
+
       setMatchId('')
     } catch (error) {
       setErrorMessage(error.message)
@@ -46,25 +63,36 @@ function CalculatePredictionForm({ matches, onPredictionCalculated }) {
     <form className="admin-form" onSubmit={handleSubmit}>
       <h3>Calculate Prediction</h3>
 
-      <div className="form-group">
-        <label htmlFor="prediction-match">Match</label>
-        <select
-          id="prediction-match"
-          value={matchId}
-          onChange={(event) => setMatchId(event.target.value)}
-          required
-        >
-          <option value="">Select match</option>
+      {availableMatches.length === 0 && (
+        <p className="success-message">
+          All available matches already have calculated predictions.
+        </p>
+      )}
 
-          {matches.map((match) => (
-            <option key={match.id} value={match.id}>
-              {formatMatchLabel(match)}
-            </option>
-          ))}
-        </select>
-      </div>
+      {availableMatches.length > 0 && (
+        <div className="form-group">
+          <label htmlFor="prediction-match">Match</label>
+          <select
+            id="prediction-match"
+            value={matchId}
+            onChange={(event) => setMatchId(event.target.value)}
+            required
+          >
+            <option value="">Select match</option>
 
-      <button type="submit" disabled={isSubmitting || matches.length === 0}>
+            {availableMatches.map((match) => (
+              <option key={match.id} value={match.id}>
+                {formatMatchLabel(match)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isSubmitting || availableMatches.length === 0 || !matchId}
+      >
         {isSubmitting ? 'Calculating...' : 'Calculate Prediction'}
       </button>
 
