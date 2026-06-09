@@ -26,13 +26,13 @@ function WeeklyPredictionsPage() {
   }, [])
 
   return (
-    <main className="page">
-      <section className="hero">
+    <main className="weekly-page">
+      <section className="weekly-hero">
         <h1>Football Prediction Analyzer</h1>
         <p>Weekly football predictions based on team statistics and weighted factors.</p>
       </section>
 
-      <section className="card">
+      <section className="weekly-content">
         <h2>Weekly Predictions</h2>
 
         {isLoading && <p>Loading predictions...</p>}
