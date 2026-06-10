@@ -86,7 +86,13 @@ public class AdminPredictionsController : ControllerBase
             _dbContext.Predictions.Remove(existingPrediction);
         }
 
-        var prediction = _predictionService.CalculatePrediction(match, statistics);
+        var activeWeights = await _dbContext.PredictionParameterWeights
+    .Where(weight => weight.IsActive)
+    .ToDictionaryAsync(
+        weight => weight.Key,
+        weight => weight.Value);
+
+        var prediction = _predictionService.CalculatePrediction(match, statistics, activeWeights);
 
         _dbContext.Predictions.Add(prediction);
         await _dbContext.SaveChangesAsync();

@@ -4,6 +4,16 @@ namespace FootballPredictionTracker.Api.Services
 {
     public class PredictionService
     {
+        private const string RecentFormKey = "recent_form";
+        private const string HomeAwayFormKey = "home_away_form";
+        private const string XgKey = "xg";
+        private const string AttackStrengthKey = "attack_strength";
+        private const string DefenseStrengthKey = "defense_strength";
+        private const string ShotsOnTargetKey = "shots_on_target";
+        private const string HeadToHeadKey = "head_to_head";
+        private const string KeyPlayersMissingKey = "key_players_missing";
+        private const string FatigueKey = "fatigue";
+
         private const decimal RecentFormWeight = 16m;
         private const decimal HomeAwayFormWeight = 18m;
         private const decimal XgWeight = 16m;
@@ -15,6 +25,14 @@ namespace FootballPredictionTracker.Api.Services
         private const decimal FatigueWeight = 5m;
 
         public Prediction CalculatePrediction(Match match, MatchStatistics statistics)
+        {
+            return CalculatePrediction(match, statistics, activeWeights: null);
+        }
+
+        public Prediction CalculatePrediction(
+            Match match,
+            MatchStatistics statistics,
+            IReadOnlyDictionary<string, decimal>? activeWeights)
         {
             var recentForm = CalculateRecentFormFactor(statistics);
             var homeAwayForm = CalculateHomeAwayFormFactor(statistics);
@@ -31,15 +49,15 @@ namespace FootballPredictionTracker.Api.Services
             decimal awayScore = 0;
             decimal activeWeightTotal = 0;
 
-            AddFactorScore(recentForm, RecentFormWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(homeAwayForm, HomeAwayFormWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(xg, XgWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(attackStrength, AttackStrengthWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(defenseStrength, DefenseStrengthWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(shotsOnTarget, ShotsOnTargetWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(headToHead, HeadToHeadWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(keyPlayersMissing, KeyPlayersMissingWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
-            AddFactorScore(fatigue, FatigueWeight, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(recentForm, RecentFormKey, RecentFormWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(homeAwayForm, HomeAwayFormKey, HomeAwayFormWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(xg, XgKey, XgWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(attackStrength, AttackStrengthKey, AttackStrengthWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(defenseStrength, DefenseStrengthKey, DefenseStrengthWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(shotsOnTarget, ShotsOnTargetKey, ShotsOnTargetWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(headToHead, HeadToHeadKey, HeadToHeadWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(keyPlayersMissing, KeyPlayersMissingKey, KeyPlayersMissingWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
+            AddFactorScore(fatigue, FatigueKey, FatigueWeight, activeWeights, ref homeScore, ref drawScore, ref awayScore, ref activeWeightTotal);
 
             var totalScore = homeScore + drawScore + awayScore;
 
@@ -62,16 +80,32 @@ namespace FootballPredictionTracker.Api.Services
         }
 
         private static void AddFactorScore(
-            FactorScore factor,
-            decimal weight,
-            ref decimal homeScore,
-            ref decimal drawScore,
-            ref decimal awayScore,
-            ref decimal activeWeightTotal)
+    FactorScore factor,
+    string factorKey,
+    decimal defaultWeight,
+    IReadOnlyDictionary<string, decimal>? activeWeights,
+    ref decimal homeScore,
+    ref decimal drawScore,
+    ref decimal awayScore,
+    ref decimal activeWeightTotal)
         {
             if (!factor.IsAvailable)
             {
                 return;
+            }
+
+            decimal weight = defaultWeight;
+
+            if (activeWeights != null)
+            {
+                if (activeWeights.Count == 0)
+                {
+                    weight = defaultWeight;
+                }
+                else if (!activeWeights.TryGetValue(factorKey, out weight))
+                {
+                    return;
+                }
             }
 
             homeScore += factor.HomeScore * weight;
