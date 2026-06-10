@@ -105,6 +105,54 @@ public class ApplicationDbContext : DbContext
     }
 );
 
+        modelBuilder.Entity<MatchStatistics>()
+    .Property(statistics => statistics.HomeXgForAverage)
+    .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.HomeXgAgainstAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.AwayXgForAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.AwayXgAgainstAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.HomeGoalsScoredAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.AwayGoalsScoredAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.HomeGoalsConcededAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.AwayGoalsConcededAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.HomeShotsOnTargetForAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.HomeShotsOnTargetAgainstAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.AwayShotsOnTargetForAverage)
+            .HasPrecision(5, 2);
+
+        modelBuilder.Entity<MatchStatistics>()
+            .Property(statistics => statistics.AwayShotsOnTargetAgainstAverage)
+            .HasPrecision(5, 2);
+
         modelBuilder.Entity<Match>()
             .HasOne(m => m.League)
             .WithMany()

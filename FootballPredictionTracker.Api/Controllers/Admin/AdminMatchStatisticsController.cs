@@ -38,31 +38,48 @@ public class AdminMatchStatisticsController : ControllerBase
                 HomeTeam = s.Match.HomeTeam.Name,
                 AwayTeam = s.Match.AwayTeam.Name,
 
-                HomeTeamRecentWins = s.HomeTeamRecentWins,
-                HomeTeamRecentDraws = s.HomeTeamRecentDraws,
-                HomeTeamRecentLosses = s.HomeTeamRecentLosses,
+                HomeRecentWins = s.HomeRecentWins,
+                HomeRecentDraws = s.HomeRecentDraws,
+                HomeRecentLosses = s.HomeRecentLosses,
 
-                AwayTeamRecentWins = s.AwayTeamRecentWins,
-                AwayTeamRecentDraws = s.AwayTeamRecentDraws,
-                AwayTeamRecentLosses = s.AwayTeamRecentLosses,
+                AwayRecentWins = s.AwayRecentWins,
+                AwayRecentDraws = s.AwayRecentDraws,
+                AwayRecentLosses = s.AwayRecentLosses,
 
+                HomeLast10HomeWins = s.HomeLast10HomeWins,
+                HomeLast10HomeDraws = s.HomeLast10HomeDraws,
+                HomeLast10HomeLosses = s.HomeLast10HomeLosses,
+
+                AwayLast10AwayWins = s.AwayLast10AwayWins,
+                AwayLast10AwayDraws = s.AwayLast10AwayDraws,
+                AwayLast10AwayLosses = s.AwayLast10AwayLosses,
+
+                HomeXgForAverage = s.HomeXgForAverage,
+                HomeXgAgainstAverage = s.HomeXgAgainstAverage,
+                AwayXgForAverage = s.AwayXgForAverage,
+                AwayXgAgainstAverage = s.AwayXgAgainstAverage,
+
+                HomeGoalsScoredAverage = s.HomeGoalsScoredAverage,
+                AwayGoalsScoredAverage = s.AwayGoalsScoredAverage,
+
+                HomeGoalsConcededAverage = s.HomeGoalsConcededAverage,
+                AwayGoalsConcededAverage = s.AwayGoalsConcededAverage,
+
+                HomeShotsOnTargetForAverage = s.HomeShotsOnTargetForAverage,
+                HomeShotsOnTargetAgainstAverage = s.HomeShotsOnTargetAgainstAverage,
+                AwayShotsOnTargetForAverage = s.AwayShotsOnTargetForAverage,
+                AwayShotsOnTargetAgainstAverage = s.AwayShotsOnTargetAgainstAverage,
+
+                HeadToHeadMatchesCount = s.HeadToHeadMatchesCount,
                 HeadToHeadHomeWins = s.HeadToHeadHomeWins,
                 HeadToHeadDraws = s.HeadToHeadDraws,
                 HeadToHeadAwayWins = s.HeadToHeadAwayWins,
 
-                HomeTeamHomeWins = s.HomeTeamHomeWins,
-                HomeTeamHomeDraws = s.HomeTeamHomeDraws,
-                HomeTeamHomeLosses = s.HomeTeamHomeLosses,
+                HomeKeyPlayersMissingImpact = s.HomeKeyPlayersMissingImpact,
+                AwayKeyPlayersMissingImpact = s.AwayKeyPlayersMissingImpact,
 
-                AwayTeamAwayWins = s.AwayTeamAwayWins,
-                AwayTeamAwayDraws = s.AwayTeamAwayDraws,
-                AwayTeamAwayLosses = s.AwayTeamAwayLosses,
-
-                HomeTeamGoalsScored = s.HomeTeamGoalsScored,
-                HomeTeamGoalsConceded = s.HomeTeamGoalsConceded,
-
-                AwayTeamGoalsScored = s.AwayTeamGoalsScored,
-                AwayTeamGoalsConceded = s.AwayTeamGoalsConceded
+                HomeFatigueImpact = s.HomeFatigueImpact,
+                AwayFatigueImpact = s.AwayFatigueImpact
             })
             .ToListAsync();
 
@@ -94,35 +111,78 @@ public class AdminMatchStatisticsController : ControllerBase
             });
         }
 
+        var formValidationError = ValidateMatchStatistics(
+            request.HomeRecentWins,
+            request.HomeRecentDraws,
+            request.HomeRecentLosses,
+            request.AwayRecentWins,
+            request.AwayRecentDraws,
+            request.AwayRecentLosses,
+            request.HomeLast10HomeWins,
+            request.HomeLast10HomeDraws,
+            request.HomeLast10HomeLosses,
+            request.AwayLast10AwayWins,
+            request.AwayLast10AwayDraws,
+            request.AwayLast10AwayLosses,
+            request.HeadToHeadMatchesCount,
+            request.HeadToHeadHomeWins,
+            request.HeadToHeadDraws,
+            request.HeadToHeadAwayWins);
+
+        if (formValidationError != null)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Message = formValidationError
+            });
+        }
+
         var statistics = new MatchStatistics
         {
             MatchId = request.MatchId,
 
-            HomeTeamRecentWins = request.HomeTeamRecentWins,
-            HomeTeamRecentDraws = request.HomeTeamRecentDraws,
-            HomeTeamRecentLosses = request.HomeTeamRecentLosses,
+            HomeRecentWins = request.HomeRecentWins,
+            HomeRecentDraws = request.HomeRecentDraws,
+            HomeRecentLosses = request.HomeRecentLosses,
 
-            AwayTeamRecentWins = request.AwayTeamRecentWins,
-            AwayTeamRecentDraws = request.AwayTeamRecentDraws,
-            AwayTeamRecentLosses = request.AwayTeamRecentLosses,
+            AwayRecentWins = request.AwayRecentWins,
+            AwayRecentDraws = request.AwayRecentDraws,
+            AwayRecentLosses = request.AwayRecentLosses,
 
+            HomeLast10HomeWins = request.HomeLast10HomeWins,
+            HomeLast10HomeDraws = request.HomeLast10HomeDraws,
+            HomeLast10HomeLosses = request.HomeLast10HomeLosses,
+
+            AwayLast10AwayWins = request.AwayLast10AwayWins,
+            AwayLast10AwayDraws = request.AwayLast10AwayDraws,
+            AwayLast10AwayLosses = request.AwayLast10AwayLosses,
+
+            HomeXgForAverage = request.HomeXgForAverage,
+            HomeXgAgainstAverage = request.HomeXgAgainstAverage,
+            AwayXgForAverage = request.AwayXgForAverage,
+            AwayXgAgainstAverage = request.AwayXgAgainstAverage,
+
+            HomeGoalsScoredAverage = request.HomeGoalsScoredAverage,
+            AwayGoalsScoredAverage = request.AwayGoalsScoredAverage,
+
+            HomeGoalsConcededAverage = request.HomeGoalsConcededAverage,
+            AwayGoalsConcededAverage = request.AwayGoalsConcededAverage,
+
+            HomeShotsOnTargetForAverage = request.HomeShotsOnTargetForAverage,
+            HomeShotsOnTargetAgainstAverage = request.HomeShotsOnTargetAgainstAverage,
+            AwayShotsOnTargetForAverage = request.AwayShotsOnTargetForAverage,
+            AwayShotsOnTargetAgainstAverage = request.AwayShotsOnTargetAgainstAverage,
+
+            HeadToHeadMatchesCount = request.HeadToHeadMatchesCount,
             HeadToHeadHomeWins = request.HeadToHeadHomeWins,
             HeadToHeadDraws = request.HeadToHeadDraws,
             HeadToHeadAwayWins = request.HeadToHeadAwayWins,
 
-            HomeTeamHomeWins = request.HomeTeamHomeWins,
-            HomeTeamHomeDraws = request.HomeTeamHomeDraws,
-            HomeTeamHomeLosses = request.HomeTeamHomeLosses,
+            HomeKeyPlayersMissingImpact = request.HomeKeyPlayersMissingImpact,
+            AwayKeyPlayersMissingImpact = request.AwayKeyPlayersMissingImpact,
 
-            AwayTeamAwayWins = request.AwayTeamAwayWins,
-            AwayTeamAwayDraws = request.AwayTeamAwayDraws,
-            AwayTeamAwayLosses = request.AwayTeamAwayLosses,
-
-            HomeTeamGoalsScored = request.HomeTeamGoalsScored,
-            HomeTeamGoalsConceded = request.HomeTeamGoalsConceded,
-
-            AwayTeamGoalsScored = request.AwayTeamGoalsScored,
-            AwayTeamGoalsConceded = request.AwayTeamGoalsConceded
+            HomeFatigueImpact = request.HomeFatigueImpact,
+            AwayFatigueImpact = request.AwayFatigueImpact
         };
 
         _dbContext.MatchStatistics.Add(statistics);
@@ -151,31 +211,74 @@ public class AdminMatchStatisticsController : ControllerBase
             });
         }
 
-        statistics.HomeTeamRecentWins = request.HomeTeamRecentWins;
-        statistics.HomeTeamRecentDraws = request.HomeTeamRecentDraws;
-        statistics.HomeTeamRecentLosses = request.HomeTeamRecentLosses;
+        var formValidationError = ValidateMatchStatistics(
+            request.HomeRecentWins,
+            request.HomeRecentDraws,
+            request.HomeRecentLosses,
+            request.AwayRecentWins,
+            request.AwayRecentDraws,
+            request.AwayRecentLosses,
+            request.HomeLast10HomeWins,
+            request.HomeLast10HomeDraws,
+            request.HomeLast10HomeLosses,
+            request.AwayLast10AwayWins,
+            request.AwayLast10AwayDraws,
+            request.AwayLast10AwayLosses,
+            request.HeadToHeadMatchesCount,
+            request.HeadToHeadHomeWins,
+            request.HeadToHeadDraws,
+            request.HeadToHeadAwayWins);
 
-        statistics.AwayTeamRecentWins = request.AwayTeamRecentWins;
-        statistics.AwayTeamRecentDraws = request.AwayTeamRecentDraws;
-        statistics.AwayTeamRecentLosses = request.AwayTeamRecentLosses;
+        if (formValidationError != null)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Message = formValidationError
+            });
+        }
 
+        statistics.HomeRecentWins = request.HomeRecentWins;
+        statistics.HomeRecentDraws = request.HomeRecentDraws;
+        statistics.HomeRecentLosses = request.HomeRecentLosses;
+
+        statistics.AwayRecentWins = request.AwayRecentWins;
+        statistics.AwayRecentDraws = request.AwayRecentDraws;
+        statistics.AwayRecentLosses = request.AwayRecentLosses;
+
+        statistics.HomeLast10HomeWins = request.HomeLast10HomeWins;
+        statistics.HomeLast10HomeDraws = request.HomeLast10HomeDraws;
+        statistics.HomeLast10HomeLosses = request.HomeLast10HomeLosses;
+
+        statistics.AwayLast10AwayWins = request.AwayLast10AwayWins;
+        statistics.AwayLast10AwayDraws = request.AwayLast10AwayDraws;
+        statistics.AwayLast10AwayLosses = request.AwayLast10AwayLosses;
+
+        statistics.HomeXgForAverage = request.HomeXgForAverage;
+        statistics.HomeXgAgainstAverage = request.HomeXgAgainstAverage;
+        statistics.AwayXgForAverage = request.AwayXgForAverage;
+        statistics.AwayXgAgainstAverage = request.AwayXgAgainstAverage;
+
+        statistics.HomeGoalsScoredAverage = request.HomeGoalsScoredAverage;
+        statistics.AwayGoalsScoredAverage = request.AwayGoalsScoredAverage;
+
+        statistics.HomeGoalsConcededAverage = request.HomeGoalsConcededAverage;
+        statistics.AwayGoalsConcededAverage = request.AwayGoalsConcededAverage;
+
+        statistics.HomeShotsOnTargetForAverage = request.HomeShotsOnTargetForAverage;
+        statistics.HomeShotsOnTargetAgainstAverage = request.HomeShotsOnTargetAgainstAverage;
+        statistics.AwayShotsOnTargetForAverage = request.AwayShotsOnTargetForAverage;
+        statistics.AwayShotsOnTargetAgainstAverage = request.AwayShotsOnTargetAgainstAverage;
+
+        statistics.HeadToHeadMatchesCount = request.HeadToHeadMatchesCount;
         statistics.HeadToHeadHomeWins = request.HeadToHeadHomeWins;
         statistics.HeadToHeadDraws = request.HeadToHeadDraws;
         statistics.HeadToHeadAwayWins = request.HeadToHeadAwayWins;
 
-        statistics.HomeTeamHomeWins = request.HomeTeamHomeWins;
-        statistics.HomeTeamHomeDraws = request.HomeTeamHomeDraws;
-        statistics.HomeTeamHomeLosses = request.HomeTeamHomeLosses;
+        statistics.HomeKeyPlayersMissingImpact = request.HomeKeyPlayersMissingImpact;
+        statistics.AwayKeyPlayersMissingImpact = request.AwayKeyPlayersMissingImpact;
 
-        statistics.AwayTeamAwayWins = request.AwayTeamAwayWins;
-        statistics.AwayTeamAwayDraws = request.AwayTeamAwayDraws;
-        statistics.AwayTeamAwayLosses = request.AwayTeamAwayLosses;
-
-        statistics.HomeTeamGoalsScored = request.HomeTeamGoalsScored;
-        statistics.HomeTeamGoalsConceded = request.HomeTeamGoalsConceded;
-
-        statistics.AwayTeamGoalsScored = request.AwayTeamGoalsScored;
-        statistics.AwayTeamGoalsConceded = request.AwayTeamGoalsConceded;
+        statistics.HomeFatigueImpact = request.HomeFatigueImpact;
+        statistics.AwayFatigueImpact = request.AwayFatigueImpact;
 
         await _dbContext.SaveChangesAsync();
 
@@ -188,31 +291,48 @@ public class AdminMatchStatisticsController : ControllerBase
             HomeTeam = statistics.Match.HomeTeam.Name,
             AwayTeam = statistics.Match.AwayTeam.Name,
 
-            HomeTeamRecentWins = statistics.HomeTeamRecentWins,
-            HomeTeamRecentDraws = statistics.HomeTeamRecentDraws,
-            HomeTeamRecentLosses = statistics.HomeTeamRecentLosses,
+            HomeRecentWins = statistics.HomeRecentWins,
+            HomeRecentDraws = statistics.HomeRecentDraws,
+            HomeRecentLosses = statistics.HomeRecentLosses,
 
-            AwayTeamRecentWins = statistics.AwayTeamRecentWins,
-            AwayTeamRecentDraws = statistics.AwayTeamRecentDraws,
-            AwayTeamRecentLosses = statistics.AwayTeamRecentLosses,
+            AwayRecentWins = statistics.AwayRecentWins,
+            AwayRecentDraws = statistics.AwayRecentDraws,
+            AwayRecentLosses = statistics.AwayRecentLosses,
 
+            HomeLast10HomeWins = statistics.HomeLast10HomeWins,
+            HomeLast10HomeDraws = statistics.HomeLast10HomeDraws,
+            HomeLast10HomeLosses = statistics.HomeLast10HomeLosses,
+
+            AwayLast10AwayWins = statistics.AwayLast10AwayWins,
+            AwayLast10AwayDraws = statistics.AwayLast10AwayDraws,
+            AwayLast10AwayLosses = statistics.AwayLast10AwayLosses,
+
+            HomeXgForAverage = statistics.HomeXgForAverage,
+            HomeXgAgainstAverage = statistics.HomeXgAgainstAverage,
+            AwayXgForAverage = statistics.AwayXgForAverage,
+            AwayXgAgainstAverage = statistics.AwayXgAgainstAverage,
+
+            HomeGoalsScoredAverage = statistics.HomeGoalsScoredAverage,
+            AwayGoalsScoredAverage = statistics.AwayGoalsScoredAverage,
+
+            HomeGoalsConcededAverage = statistics.HomeGoalsConcededAverage,
+            AwayGoalsConcededAverage = statistics.AwayGoalsConcededAverage,
+
+            HomeShotsOnTargetForAverage = statistics.HomeShotsOnTargetForAverage,
+            HomeShotsOnTargetAgainstAverage = statistics.HomeShotsOnTargetAgainstAverage,
+            AwayShotsOnTargetForAverage = statistics.AwayShotsOnTargetForAverage,
+            AwayShotsOnTargetAgainstAverage = statistics.AwayShotsOnTargetAgainstAverage,
+
+            HeadToHeadMatchesCount = statistics.HeadToHeadMatchesCount,
             HeadToHeadHomeWins = statistics.HeadToHeadHomeWins,
             HeadToHeadDraws = statistics.HeadToHeadDraws,
             HeadToHeadAwayWins = statistics.HeadToHeadAwayWins,
 
-            HomeTeamHomeWins = statistics.HomeTeamHomeWins,
-            HomeTeamHomeDraws = statistics.HomeTeamHomeDraws,
-            HomeTeamHomeLosses = statistics.HomeTeamHomeLosses,
+            HomeKeyPlayersMissingImpact = statistics.HomeKeyPlayersMissingImpact,
+            AwayKeyPlayersMissingImpact = statistics.AwayKeyPlayersMissingImpact,
 
-            AwayTeamAwayWins = statistics.AwayTeamAwayWins,
-            AwayTeamAwayDraws = statistics.AwayTeamAwayDraws,
-            AwayTeamAwayLosses = statistics.AwayTeamAwayLosses,
-
-            HomeTeamGoalsScored = statistics.HomeTeamGoalsScored,
-            HomeTeamGoalsConceded = statistics.HomeTeamGoalsConceded,
-
-            AwayTeamGoalsScored = statistics.AwayTeamGoalsScored,
-            AwayTeamGoalsConceded = statistics.AwayTeamGoalsConceded
+            HomeFatigueImpact = statistics.HomeFatigueImpact,
+            AwayFatigueImpact = statistics.AwayFatigueImpact
         };
 
         return Ok(response);
@@ -247,5 +367,51 @@ public class AdminMatchStatisticsController : ControllerBase
         await _dbContext.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private static string? ValidateMatchStatistics(
+        int homeRecentWins,
+        int homeRecentDraws,
+        int homeRecentLosses,
+        int awayRecentWins,
+        int awayRecentDraws,
+        int awayRecentLosses,
+        int homeLast10HomeWins,
+        int homeLast10HomeDraws,
+        int homeLast10HomeLosses,
+        int awayLast10AwayWins,
+        int awayLast10AwayDraws,
+        int awayLast10AwayLosses,
+        int headToHeadMatchesCount,
+        int headToHeadHomeWins,
+        int headToHeadDraws,
+        int headToHeadAwayWins)
+    {
+        if (homeRecentWins + homeRecentDraws + homeRecentLosses != 6)
+        {
+            return "Home recent form must contain exactly 6 matches.";
+        }
+
+        if (awayRecentWins + awayRecentDraws + awayRecentLosses != 6)
+        {
+            return "Away recent form must contain exactly 6 matches.";
+        }
+
+        if (homeLast10HomeWins + homeLast10HomeDraws + homeLast10HomeLosses != 10)
+        {
+            return "Home home/away form must contain exactly 10 matches.";
+        }
+
+        if (awayLast10AwayWins + awayLast10AwayDraws + awayLast10AwayLosses != 10)
+        {
+            return "Away home/away form must contain exactly 10 matches.";
+        }
+
+        if (headToHeadHomeWins + headToHeadDraws + headToHeadAwayWins != headToHeadMatchesCount)
+        {
+            return "Head-to-head results must match the head-to-head matches count.";
+        }
+
+        return null;
     }
 }
