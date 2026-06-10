@@ -6,6 +6,8 @@ using System.Net.Http.Json;
 using FootballPredictionTracker.Tests.Helpers;
 using FootballPredictionTracker.Api.DTOs;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace FootballPredictionTracker.Tests.Api
 {
@@ -287,6 +289,89 @@ namespace FootballPredictionTracker.Tests.Api
             // Act
             HttpResponseMessage response =
                 await client!.PostAsJsonAsync("/api/admin/prediction-imports", request);
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            ImportPredictionResponse? importResponse =
+                await response.Content.ReadFromJsonAsync<ImportPredictionResponse>();
+
+            Assert.That(importResponse, Is.Not.Null);
+            Assert.That(importResponse!.CreatedMatches, Is.EqualTo(1));
+            Assert.That(importResponse.CreatedStatistics, Is.EqualTo(1));
+            Assert.That(importResponse.CreatedPredictions, Is.EqualTo(1));
+            Assert.That(importResponse.Errors, Is.Empty);
+            Assert.That(importResponse.ImportedPredictions, Has.Count.EqualTo(1));
+
+            ImportedPredictionResponse importedPrediction =
+                importResponse.ImportedPredictions.Single();
+
+            int totalProbability =
+                importedPrediction.HomeWinProbability +
+                importedPrediction.DrawProbability +
+                importedPrediction.AwayWinProbability;
+
+            Assert.That(totalProbability, Is.EqualTo(100));
+            Assert.That(importedPrediction.HomeTeam, Is.EqualTo("Liverpool"));
+            Assert.That(importedPrediction.AwayTeam, Is.EqualTo("Everton"));
+
+            int matchesCount = await dbContext.Matches.CountAsync();
+            int statisticsCount = await dbContext.MatchStatistics.CountAsync();
+            int predictionsCount = await dbContext.Predictions.CountAsync();
+
+            Assert.That(matchesCount, Is.EqualTo(1));
+            Assert.That(statisticsCount, Is.EqualTo(1));
+            Assert.That(predictionsCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task ImportPredictionsFromCsv_WithValidFile_ShouldCreateMatchStatisticsAndPrediction()
+        {
+            // Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+
+            await dbContext.SaveChangesAsync();
+
+            string csvContent =
+                "league_name,home_team_name,away_team_name,kickoff_time,home_recent_wins,home_recent_draws,home_recent_losses,away_recent_wins,away_recent_draws,away_recent_losses,home_last10_home_wins,home_last10_home_draws,home_last10_home_losses,away_last10_away_wins,away_last10_away_draws,away_last10_away_losses,home_xg_for_average,home_xg_against_average,away_xg_for_average,away_xg_against_average,home_goals_scored_average,away_goals_scored_average,home_goals_conceded_average,away_goals_conceded_average,home_shots_on_target_for_average,home_shots_on_target_against_average,away_shots_on_target_for_average,away_shots_on_target_against_average,head_to_head_matches_count,head_to_head_home_wins,head_to_head_draws,head_to_head_away_wins,home_key_players_missing_impact,away_key_players_missing_impact,home_fatigue_impact,away_fatigue_impact\n" +
+                "Premier League,Liverpool,Everton,2026-07-06T19:00:00Z,5,1,0,1,1,4,8,2,0,2,2,6,2.20,0.80,0.90,1.90,2.10,0.90,0.70,1.80,6.50,2.80,3.10,6.00,6,4,1,1,0,2,0,2";
+
+            using var form = new MultipartFormDataContent();
+
+            using var fileContent = new StringContent(csvContent, Encoding.UTF8);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
+
+            form.Add(fileContent, "file", "prediction-import-test.csv");
+
+            // Act
+            HttpResponseMessage response =
+                await client!.PostAsync("/api/admin/prediction-imports/csv", form);
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
