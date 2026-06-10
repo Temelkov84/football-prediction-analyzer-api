@@ -1,5 +1,4 @@
-﻿using FootballPredictionTracker.Api.DTOs;
-using FootballPredictionTracker.Api.Models;
+﻿using FootballPredictionTracker.Api.Models;
 using FootballPredictionTracker.Api.Services;
 using NUnit.Framework;
 
@@ -14,44 +13,61 @@ namespace FootballPredictionTracker.Tests.Services
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            Match match = new Match
-            {
-                Id = 1,
-                LeagueId = 1,
-                HomeTeamId = 1,
-                AwayTeamId = 2,
-                KickoffTime = DateTime.UtcNow
-            };
+            Match match = CreateMatch(id: 1);
 
             MatchStatistics statistics = new MatchStatistics
             {
-                MatchId = 1,
+                MatchId = match.Id,
 
-                HomeTeamRecentWins = 5,
-                HomeTeamRecentDraws = 1,
-                HomeTeamRecentLosses = 0,
+                // Recent Form - last 6
+                HomeRecentWins = 5,
+                HomeRecentDraws = 1,
+                HomeRecentLosses = 0,
 
-                AwayTeamRecentWins = 1,
-                AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 4,
+                AwayRecentWins = 1,
+                AwayRecentDraws = 1,
+                AwayRecentLosses = 4,
 
+                // Home/Away Form - last 10
+                HomeLast10HomeWins = 8,
+                HomeLast10HomeDraws = 2,
+                HomeLast10HomeLosses = 0,
+
+                AwayLast10AwayWins = 2,
+                AwayLast10AwayDraws = 2,
+                AwayLast10AwayLosses = 6,
+
+                // xG
+                HomeXgForAverage = 2.20m,
+                HomeXgAgainstAverage = 0.80m,
+                AwayXgForAverage = 0.90m,
+                AwayXgAgainstAverage = 1.90m,
+
+                // Attack / Defense
+                HomeGoalsScoredAverage = 2.10m,
+                AwayGoalsScoredAverage = 0.90m,
+
+                HomeGoalsConcededAverage = 0.70m,
+                AwayGoalsConcededAverage = 1.80m,
+
+                // Shots on Target
+                HomeShotsOnTargetForAverage = 6.50m,
+                HomeShotsOnTargetAgainstAverage = 2.80m,
+                AwayShotsOnTargetForAverage = 3.10m,
+                AwayShotsOnTargetAgainstAverage = 6.00m,
+
+                // Head-to-Head
+                HeadToHeadMatchesCount = 6,
                 HeadToHeadHomeWins = 4,
                 HeadToHeadDraws = 1,
                 HeadToHeadAwayWins = 1,
 
-                HomeTeamHomeWins = 5,
-                HomeTeamHomeDraws = 1,
-                HomeTeamHomeLosses = 0,
+                // Impact factors
+                HomeKeyPlayersMissingImpact = 0,
+                AwayKeyPlayersMissingImpact = 2,
 
-                AwayTeamAwayWins = 1,
-                AwayTeamAwayDraws = 1,
-                AwayTeamAwayLosses = 4,
-
-                HomeTeamGoalsScored = 15,
-                HomeTeamGoalsConceded = 4,
-
-                AwayTeamGoalsScored = 5,
-                AwayTeamGoalsConceded = 14
+                HomeFatigueImpact = 0,
+                AwayFatigueImpact = 2
             };
 
             // Act
@@ -60,60 +76,96 @@ namespace FootballPredictionTracker.Tests.Services
             // Assert
             Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.DrawProbability));
             Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.AwayWinProbability));
-
-            int totalProbability =
-                prediction.HomeWinProbability +
-                prediction.DrawProbability +
-                prediction.AwayWinProbability;
-
-            Assert.That(totalProbability, Is.EqualTo(100));
             Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
+
+            AssertProbabilitiesSumTo100(prediction);
         }
-     
+
+        [Test]
+        public void CalculatePrediction_WithStrongAwayTeam_ShouldReturnHighestAwayWinProbability()
+        {
+            // Arrange
+            PredictionService predictionService = new PredictionService();
+
+            Match match = CreateMatch(id: 2);
+
+            MatchStatistics statistics = new MatchStatistics
+            {
+                MatchId = match.Id,
+
+                // Recent Form - last 6
+                HomeRecentWins = 1,
+                HomeRecentDraws = 1,
+                HomeRecentLosses = 4,
+
+                AwayRecentWins = 5,
+                AwayRecentDraws = 1,
+                AwayRecentLosses = 0,
+
+                // Home/Away Form - last 10
+                HomeLast10HomeWins = 2,
+                HomeLast10HomeDraws = 2,
+                HomeLast10HomeLosses = 6,
+
+                AwayLast10AwayWins = 8,
+                AwayLast10AwayDraws = 2,
+                AwayLast10AwayLosses = 0,
+
+                // xG
+                HomeXgForAverage = 0.90m,
+                HomeXgAgainstAverage = 1.90m,
+                AwayXgForAverage = 2.20m,
+                AwayXgAgainstAverage = 0.80m,
+
+                // Attack / Defense
+                HomeGoalsScoredAverage = 0.90m,
+                AwayGoalsScoredAverage = 2.10m,
+
+                HomeGoalsConcededAverage = 1.80m,
+                AwayGoalsConcededAverage = 0.70m,
+
+                // Shots on Target
+                HomeShotsOnTargetForAverage = 3.10m,
+                HomeShotsOnTargetAgainstAverage = 6.00m,
+                AwayShotsOnTargetForAverage = 6.50m,
+                AwayShotsOnTargetAgainstAverage = 2.80m,
+
+                // Head-to-Head
+                HeadToHeadMatchesCount = 6,
+                HeadToHeadHomeWins = 1,
+                HeadToHeadDraws = 1,
+                HeadToHeadAwayWins = 4,
+
+                // Impact factors
+                HomeKeyPlayersMissingImpact = 2,
+                AwayKeyPlayersMissingImpact = 0,
+
+                HomeFatigueImpact = 2,
+                AwayFatigueImpact = 0
+            };
+
+            // Act
+            Prediction prediction = predictionService.CalculatePrediction(match, statistics);
+
+            // Assert
+            Assert.That(prediction.AwayWinProbability, Is.GreaterThan(prediction.HomeWinProbability));
+            Assert.That(prediction.AwayWinProbability, Is.GreaterThan(prediction.DrawProbability));
+            Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
+
+            AssertProbabilitiesSumTo100(prediction);
+        }
+
         [Test]
         public void CalculatePrediction_WithNoStatistics_ShouldReturnBalancedProbabilities()
         {
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            Match match = new Match
-            {
-                Id = 2,
-                LeagueId = 1,
-                HomeTeamId = 2,
-                AwayTeamId = 3,
-                KickoffTime = DateTime.UtcNow
-            };
+            Match match = CreateMatch(id: 3);
 
             MatchStatistics statistics = new MatchStatistics
             {
-                MatchId = 2,
-
-                HomeTeamRecentWins = 0,
-                HomeTeamRecentDraws = 0,
-                HomeTeamRecentLosses = 0,
-
-                AwayTeamRecentWins = 0,
-                AwayTeamRecentDraws = 0,
-                AwayTeamRecentLosses = 0,
-
-                HeadToHeadHomeWins = 0,
-                HeadToHeadDraws = 0,
-                HeadToHeadAwayWins = 0,
-
-                HomeTeamHomeWins = 0,
-                HomeTeamHomeDraws = 0,
-                HomeTeamHomeLosses = 0,
-
-                AwayTeamAwayWins = 0,
-                AwayTeamAwayDraws = 0,
-                AwayTeamAwayLosses = 0,
-
-                HomeTeamGoalsScored = 0,
-                HomeTeamGoalsConceded = 0,
-
-                AwayTeamGoalsScored = 0,
-                AwayTeamGoalsConceded = 0
+                MatchId = match.Id
             };
 
             // Act
@@ -124,160 +176,167 @@ namespace FootballPredictionTracker.Tests.Services
             Assert.That(prediction.DrawProbability, Is.EqualTo(34));
             Assert.That(prediction.AwayWinProbability, Is.EqualTo(33));
             Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
+
+            AssertProbabilitiesSumTo100(prediction);
         }
 
         [Test]
-        public void CalculatePrediction_WhenHomeTeamHasStrongerStatistics_ShouldReturnHomeTeamAsHighestProbability()
+        public void CalculatePrediction_WithBalancedStatistics_ShouldReturnProbabilitiesThatSumTo100()
         {
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-            Match match = new Match
-            {
-                Id = 1,
-                LeagueId = 1,
-                HomeTeamId = 1,
-                AwayTeamId = 2,
-                KickoffTime = DateTime.UtcNow
-            };
+            Match match = CreateMatch(id: 4);
 
             MatchStatistics statistics = new MatchStatistics
             {
-                MatchId = 1,
-                HomeTeamRecentWins = 5,
-                HomeTeamRecentDraws = 0,
-                HomeTeamRecentLosses = 0,
-                AwayTeamRecentWins = 0,
-                AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 4,
-                HeadToHeadHomeWins = 5,
-                HeadToHeadDraws = 0,
-                HeadToHeadAwayWins = 0,
-                HomeTeamHomeWins = 5,
-                HomeTeamHomeDraws = 0,
-                HomeTeamHomeLosses = 0,
-                AwayTeamAwayWins = 0,
-                AwayTeamAwayDraws = 1,
-                AwayTeamAwayLosses = 4,
-                HomeTeamGoalsScored = 20,
-                HomeTeamGoalsConceded = 2,
-                AwayTeamGoalsScored = 2,
-                AwayTeamGoalsConceded = 20
+                MatchId = match.Id,
+
+                // Recent Form - last 6
+                HomeRecentWins = 3,
+                HomeRecentDraws = 1,
+                HomeRecentLosses = 2,
+
+                AwayRecentWins = 3,
+                AwayRecentDraws = 1,
+                AwayRecentLosses = 2,
+
+                // Home/Away Form - last 10
+                HomeLast10HomeWins = 5,
+                HomeLast10HomeDraws = 3,
+                HomeLast10HomeLosses = 2,
+
+                AwayLast10AwayWins = 5,
+                AwayLast10AwayDraws = 3,
+                AwayLast10AwayLosses = 2,
+
+                // xG
+                HomeXgForAverage = 1.50m,
+                HomeXgAgainstAverage = 1.20m,
+                AwayXgForAverage = 1.50m,
+                AwayXgAgainstAverage = 1.20m,
+
+                // Attack / Defense
+                HomeGoalsScoredAverage = 1.50m,
+                AwayGoalsScoredAverage = 1.50m,
+
+                HomeGoalsConcededAverage = 1.20m,
+                AwayGoalsConcededAverage = 1.20m,
+
+                // Shots on Target
+                HomeShotsOnTargetForAverage = 4.50m,
+                HomeShotsOnTargetAgainstAverage = 4.00m,
+                AwayShotsOnTargetForAverage = 4.50m,
+                AwayShotsOnTargetAgainstAverage = 4.00m,
+
+                // Head-to-Head
+                HeadToHeadMatchesCount = 6,
+                HeadToHeadHomeWins = 2,
+                HeadToHeadDraws = 2,
+                HeadToHeadAwayWins = 2,
+
+                // Impact factors
+                HomeKeyPlayersMissingImpact = 1,
+                AwayKeyPlayersMissingImpact = 1,
+
+                HomeFatigueImpact = 1,
+                AwayFatigueImpact = 1
             };
 
             // Act
             Prediction prediction = predictionService.CalculatePrediction(match, statistics);
 
             // Assert
-            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.DrawProbability));
-            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.AwayWinProbability));
+            AssertProbabilitiesSumTo100(prediction);
             Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
         }
 
-            [Test]
-        public void CalculatePrediction_WhenAwayTeamHasStrongerStatistics_ShouldReturnAwayTeamAsHighestProbability()
+        [Test]
+        public void CalculatePrediction_WithNoHeadToHeadMatches_ShouldStillCalculatePrediction()
         {
             // Arrange
             PredictionService predictionService = new PredictionService();
 
-                Match match = new Match
-                {
-                    Id = 1,
-                    LeagueId = 1,
-                    HomeTeamId = 1,
-                    AwayTeamId = 2,
-                    KickoffTime = DateTime.UtcNow
-                };
+            Match match = CreateMatch(id: 5);
 
-                MatchStatistics statistics = new MatchStatistics
-                {
-                    MatchId = 1,
-                    HomeTeamRecentWins = 0,
-                    HomeTeamRecentDraws = 1,
-                    HomeTeamRecentLosses = 4,
+            MatchStatistics statistics = new MatchStatistics
+            {
+                MatchId = match.Id,
 
-                    AwayTeamRecentWins = 5,
-                    AwayTeamRecentDraws = 0,
-                    AwayTeamRecentLosses = 0,
+                // Recent Form - last 6
+                HomeRecentWins = 4,
+                HomeRecentDraws = 1,
+                HomeRecentLosses = 1,
 
-                    HeadToHeadHomeWins = 0,
-                    HeadToHeadDraws = 1,
-                    HeadToHeadAwayWins = 5,
+                AwayRecentWins = 2,
+                AwayRecentDraws = 2,
+                AwayRecentLosses = 2,
 
-                    HomeTeamHomeWins = 0,
-                    HomeTeamHomeDraws = 1,
-                    HomeTeamHomeLosses = 3,
-              
-                    AwayTeamAwayWins = 3,
-                    AwayTeamAwayDraws = 1,
-                    AwayTeamAwayLosses = 0,
-                   
-                    HomeTeamGoalsScored = 2,
-                    HomeTeamGoalsConceded = 2,
-                    
-                    AwayTeamGoalsScored = 12,
-                    AwayTeamGoalsConceded = 0
-                };
-                
-                //Act
-                Prediction prediction = predictionService.CalculatePrediction(match, statistics);
+                // Home/Away Form - last 10
+                HomeLast10HomeWins = 6,
+                HomeLast10HomeDraws = 2,
+                HomeLast10HomeLosses = 2,
 
-            
+                AwayLast10AwayWins = 3,
+                AwayLast10AwayDraws = 3,
+                AwayLast10AwayLosses = 4,
+
+                // xG
+                HomeXgForAverage = 1.80m,
+                HomeXgAgainstAverage = 1.00m,
+                AwayXgForAverage = 1.20m,
+                AwayXgAgainstAverage = 1.50m,
+
+                // Attack / Defense
+                HomeGoalsScoredAverage = 1.70m,
+                AwayGoalsScoredAverage = 1.20m,
+
+                HomeGoalsConcededAverage = 1.00m,
+                AwayGoalsConcededAverage = 1.50m,
+
+                // Shots on Target
+                HomeShotsOnTargetForAverage = 5.20m,
+                HomeShotsOnTargetAgainstAverage = 3.50m,
+                AwayShotsOnTargetForAverage = 4.00m,
+                AwayShotsOnTargetAgainstAverage = 4.80m,
+
+                // Head-to-Head unavailable
+                HeadToHeadMatchesCount = 0,
+                HeadToHeadHomeWins = 0,
+                HeadToHeadDraws = 0,
+                HeadToHeadAwayWins = 0,
+
+                // Impact factors
+                HomeKeyPlayersMissingImpact = 0,
+                AwayKeyPlayersMissingImpact = 1,
+
+                HomeFatigueImpact = 0,
+                AwayFatigueImpact = 1
+            };
+
+            // Act
+            Prediction prediction = predictionService.CalculatePrediction(match, statistics);
+
             // Assert
-            Assert.That(prediction.AwayWinProbability, Is.GreaterThan(prediction.HomeWinProbability));
-            Assert.That(prediction.AwayWinProbability, Is.GreaterThan(prediction.DrawProbability));
+            AssertProbabilitiesSumTo100(prediction);
+            Assert.That(prediction.MatchId, Is.EqualTo(match.Id));
+            Assert.That(prediction.HomeWinProbability, Is.GreaterThan(prediction.AwayWinProbability));
         }
 
-        [Test]
-        public void CalculatePrediction_WhenStatisticsAreBalanced_ShouldReturnBalancedExplanation()
+        private static Match CreateMatch(int id)
         {
-            // Arrange
-            PredictionService predictionService = new PredictionService();
-
-            Match match = new Match
+            return new Match
             {
-                Id = 1,
+                Id = id,
                 LeagueId = 1,
                 HomeTeamId = 1,
                 AwayTeamId = 2,
                 KickoffTime = DateTime.UtcNow
             };
+        }
 
-            MatchStatistics statistics = new MatchStatistics
-            {
-                MatchId = 1,
-
-                HomeTeamRecentWins = 3,
-                HomeTeamRecentDraws = 1,
-                HomeTeamRecentLosses = 2,
-
-                AwayTeamRecentWins = 3,
-                AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 2,
-
-                HeadToHeadHomeWins = 2,
-                HeadToHeadDraws = 2,
-                HeadToHeadAwayWins = 2,
-
-                HomeTeamHomeWins = 3,
-                HomeTeamHomeDraws = 2,
-                HomeTeamHomeLosses = 1,
-
-                AwayTeamAwayWins = 3,
-                AwayTeamAwayDraws = 2,
-                AwayTeamAwayLosses = 1,
-
-                HomeTeamGoalsScored = 10,
-                HomeTeamGoalsConceded = 7,
-
-                AwayTeamGoalsScored = 10,
-                AwayTeamGoalsConceded = 7
-            };
-
-            // Act
-           Prediction prediction = predictionService.CalculatePrediction(match, statistics);
-
-            // Assert
+        private static void AssertProbabilitiesSumTo100(Prediction prediction)
+        {
             int totalProbability =
                 prediction.HomeWinProbability +
                 prediction.DrawProbability +
@@ -285,6 +344,5 @@ namespace FootballPredictionTracker.Tests.Services
 
             Assert.That(totalProbability, Is.EqualTo(100));
         }
-
     }
 }

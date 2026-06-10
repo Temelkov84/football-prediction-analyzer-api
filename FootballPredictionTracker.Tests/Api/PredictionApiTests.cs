@@ -82,31 +82,55 @@ namespace FootballPredictionTracker.Tests.Api
             {
                 Match = match,
 
-                HomeTeamRecentWins = 5,
-                HomeTeamRecentDraws = 1,
-                HomeTeamRecentLosses = 0,
+                // Recent Form - last 6
+                HomeRecentWins = 5,
+                HomeRecentDraws = 1,
+                HomeRecentLosses = 0,
 
-                AwayTeamRecentWins = 1,
-                AwayTeamRecentDraws = 1,
-                AwayTeamRecentLosses = 4,
+                AwayRecentWins = 1,
+                AwayRecentDraws = 1,
+                AwayRecentLosses = 4,
 
+                // Home/Away Form - last 10
+                HomeLast10HomeWins = 8,
+                HomeLast10HomeDraws = 2,
+                HomeLast10HomeLosses = 0,
+
+                AwayLast10AwayWins = 2,
+                AwayLast10AwayDraws = 2,
+                AwayLast10AwayLosses = 6,
+
+                // xG
+                HomeXgForAverage = 2.20m,
+                HomeXgAgainstAverage = 0.80m,
+                AwayXgForAverage = 0.90m,
+                AwayXgAgainstAverage = 1.90m,
+
+                // Attack / Defense
+                HomeGoalsScoredAverage = 2.10m,
+                AwayGoalsScoredAverage = 0.90m,
+
+                HomeGoalsConcededAverage = 0.70m,
+                AwayGoalsConcededAverage = 1.80m,
+
+                // Shots on Target
+                HomeShotsOnTargetForAverage = 6.50m,
+                HomeShotsOnTargetAgainstAverage = 2.80m,
+                AwayShotsOnTargetForAverage = 3.10m,
+                AwayShotsOnTargetAgainstAverage = 6.00m,
+
+                // Head-to-Head
+                HeadToHeadMatchesCount = 6,
                 HeadToHeadHomeWins = 4,
                 HeadToHeadDraws = 1,
                 HeadToHeadAwayWins = 1,
 
-                HomeTeamHomeWins = 5,
-                HomeTeamHomeDraws = 1,
-                HomeTeamHomeLosses = 0,
+                // Impact factors
+                HomeKeyPlayersMissingImpact = 0,
+                AwayKeyPlayersMissingImpact = 2,
 
-                AwayTeamAwayWins = 1,
-                AwayTeamAwayDraws = 1,
-                AwayTeamAwayLosses = 4,
-
-                HomeTeamGoalsScored = 14,
-                AwayTeamGoalsScored = 5,
-
-                HomeTeamGoalsConceded = 3,
-                AwayTeamGoalsConceded = 12
+                HomeFatigueImpact = 0,
+                AwayFatigueImpact = 2
             };
 
             dbContext.Leagues.Add(league);
