@@ -195,5 +195,131 @@ namespace FootballPredictionTracker.Tests.Api
             Assert.That(errorResponse, Is.Not.Null);
             Assert.That(errorResponse!.Message, Is.EqualTo("Match does not exist."));
         }
+
+        [Test]
+        public async Task ImportPredictions_WithValidRow_ShouldCreateMatchStatisticsAndPrediction()
+        {
+            // Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+
+            await dbContext.SaveChangesAsync();
+
+            List<ImportPredictionRequest> request = new()
+    {
+        new ImportPredictionRequest
+        {
+            LeagueName = "Premier League",
+            HomeTeamName = "Liverpool",
+            AwayTeamName = "Everton",
+            KickoffTime = DateTime.UtcNow.AddDays(1),
+
+            HomeRecentWins = 5,
+            HomeRecentDraws = 1,
+            HomeRecentLosses = 0,
+
+            AwayRecentWins = 1,
+            AwayRecentDraws = 1,
+            AwayRecentLosses = 4,
+
+            HomeLast10HomeWins = 8,
+            HomeLast10HomeDraws = 2,
+            HomeLast10HomeLosses = 0,
+
+            AwayLast10AwayWins = 2,
+            AwayLast10AwayDraws = 2,
+            AwayLast10AwayLosses = 6,
+
+            HomeXgForAverage = 2.20m,
+            HomeXgAgainstAverage = 0.80m,
+            AwayXgForAverage = 0.90m,
+            AwayXgAgainstAverage = 1.90m,
+
+            HomeGoalsScoredAverage = 2.10m,
+            AwayGoalsScoredAverage = 0.90m,
+
+            HomeGoalsConcededAverage = 0.70m,
+            AwayGoalsConcededAverage = 1.80m,
+
+            HomeShotsOnTargetForAverage = 6.50m,
+            HomeShotsOnTargetAgainstAverage = 2.80m,
+            AwayShotsOnTargetForAverage = 3.10m,
+            AwayShotsOnTargetAgainstAverage = 6.00m,
+
+            HeadToHeadMatchesCount = 6,
+            HeadToHeadHomeWins = 4,
+            HeadToHeadDraws = 1,
+            HeadToHeadAwayWins = 1,
+
+            HomeKeyPlayersMissingImpact = 0,
+            AwayKeyPlayersMissingImpact = 2,
+
+            HomeFatigueImpact = 0,
+            AwayFatigueImpact = 2
+        }
+    };
+
+            // Act
+            HttpResponseMessage response =
+                await client!.PostAsJsonAsync("/api/admin/prediction-imports", request);
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            ImportPredictionResponse? importResponse =
+                await response.Content.ReadFromJsonAsync<ImportPredictionResponse>();
+
+            Assert.That(importResponse, Is.Not.Null);
+            Assert.That(importResponse!.CreatedMatches, Is.EqualTo(1));
+            Assert.That(importResponse.CreatedStatistics, Is.EqualTo(1));
+            Assert.That(importResponse.CreatedPredictions, Is.EqualTo(1));
+            Assert.That(importResponse.Errors, Is.Empty);
+            Assert.That(importResponse.ImportedPredictions, Has.Count.EqualTo(1));
+
+            ImportedPredictionResponse importedPrediction =
+                importResponse.ImportedPredictions.Single();
+
+            int totalProbability =
+                importedPrediction.HomeWinProbability +
+                importedPrediction.DrawProbability +
+                importedPrediction.AwayWinProbability;
+
+            Assert.That(totalProbability, Is.EqualTo(100));
+            Assert.That(importedPrediction.HomeTeam, Is.EqualTo("Liverpool"));
+            Assert.That(importedPrediction.AwayTeam, Is.EqualTo("Everton"));
+
+            int matchesCount = await dbContext.Matches.CountAsync();
+            int statisticsCount = await dbContext.MatchStatistics.CountAsync();
+            int predictionsCount = await dbContext.Predictions.CountAsync();
+
+            Assert.That(matchesCount, Is.EqualTo(1));
+            Assert.That(statisticsCount, Is.EqualTo(1));
+            Assert.That(predictionsCount, Is.EqualTo(1));
+        }
     }
 }

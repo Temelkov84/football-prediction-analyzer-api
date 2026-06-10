@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace FootballPredictionTracker.Tests.Helpers
 {
@@ -13,11 +14,11 @@ namespace FootballPredictionTracker.Tests.Helpers
         {
             builder.ConfigureServices(services =>
             {
-                services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
-
                 services.AddDbContext<ApplicationDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("FootballPredictionTrackerTestDb");
+                    options.UseInMemoryDatabase("TestDatabase")
+                        .ConfigureWarnings(warnings =>
+                            warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
                 });
             });
         }
