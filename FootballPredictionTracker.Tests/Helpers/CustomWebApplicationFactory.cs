@@ -2,25 +2,31 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
-namespace FootballPredictionTracker.Tests.Helpers
+namespace FootballPredictionTracker.Tests.Helpers;
+
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+    private readonly string _databaseName =
+        $"FootballPredictionTrackerTests_{Guid.NewGuid()}";
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        builder.UseEnvironment("Testing");
+
+        builder.ConfigureServices(services =>
         {
-            builder.ConfigureServices(services =>
+            services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
+
+            services.AddDbContext<ApplicationDbContext>(options =>
             {
-                services.AddDbContext<ApplicationDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase("TestDatabase")
-                        .ConfigureWarnings(warnings =>
-                            warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
-                });
+                options.UseInMemoryDatabase(_databaseName)
+                    .ConfigureWarnings(warnings =>
+                        warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
             });
-        }
+        });
     }
 }
