@@ -508,5 +508,414 @@ namespace FootballPredictionTracker.Tests.Api
             Assert.That(statisticsCount, Is.EqualTo(1));
             Assert.That(predictionsCount, Is.EqualTo(1));
         }
+
+        [Test]
+        public async Task ImportPredictionsFromCsv_WithValidFile_ShouldExposePredictionOnPublicWeeklyEndpoint()
+        {
+            //Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+           
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League",
+                Country = "England"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+
+            await dbContext.SaveChangesAsync();
+
+            string csvContent =
+     "league_name,home_team_name,away_team_name,kickoff_time,home_recent_wins,home_recent_draws,home_recent_losses,away_recent_wins,away_recent_draws,away_recent_losses,home_last10_home_wins,home_last10_home_draws,home_last10_home_losses,away_last10_away_wins,away_last10_away_draws,away_last10_away_losses,home_xg_for_average,home_xg_against_average,away_xg_for_average,away_xg_against_average,home_goals_scored_average,away_goals_scored_average,home_goals_conceded_average,away_goals_conceded_average,home_shots_on_target_for_average,home_shots_on_target_against_average,away_shots_on_target_for_average,away_shots_on_target_against_average,head_to_head_matches_count,head_to_head_home_wins,head_to_head_draws,head_to_head_away_wins,home_key_players_missing_impact,away_key_players_missing_impact,home_fatigue_impact,away_fatigue_impact\n" +
+     "Premier League,Liverpool,Everton," + DateTime.UtcNow.AddDays(1).ToString("o") + ",5,1,0,1,1,4,8,2,0,2,2,6,2.20,0.80,0.90,1.90,2.10,0.90,0.70,1.80,6.50,2.80,3.10,6.00,6,4,1,1,0,2,0,2";
+
+            using var form = new MultipartFormDataContent();
+
+            using var fileContent = new StringContent(csvContent, Encoding.UTF8);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
+
+            form.Add(fileContent, "file", "prediction-import-test.csv");
+
+            // Act 1 - import CSV
+            HttpResponseMessage importResponseMessage =
+                await client!.PostAsync("/api/admin/prediction-imports/csv", form);
+
+            // Assert 1 - import response
+            Assert.That(importResponseMessage.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            ImportPredictionResponse? importResponse =
+                await importResponseMessage.Content.ReadFromJsonAsync<ImportPredictionResponse>();
+
+            Assert.That(importResponse, Is.Not.Null);
+            Assert.That(importResponse!.CreatedMatches, Is.EqualTo(1));
+            Assert.That(importResponse.CreatedStatistics, Is.EqualTo(1));
+            Assert.That(importResponse.CreatedPredictions, Is.EqualTo(1));
+            Assert.That(importResponse.Errors, Is.Empty);
+            Assert.That(importResponse.ImportedPredictions, Has.Count.EqualTo(1));
+
+            // Act 2 - get public weekly predictions
+            HttpResponseMessage weeklyResponse =
+                await client.GetAsync("/api/Predictions/weekly");
+
+            // Assert 2 - public weekly response
+            Assert.That(weeklyResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            List<WeeklyPredictionResponse>? weeklyPredictions =
+                await weeklyResponse.Content.ReadFromJsonAsync<List<WeeklyPredictionResponse>>();
+
+            Assert.That(weeklyPredictions, Is.Not.Null);
+            Assert.That(weeklyPredictions, Has.Count.EqualTo(1));
+
+            WeeklyPredictionResponse weeklyPrediction = weeklyPredictions!.Single();
+
+            Assert.That(weeklyPrediction.HomeTeam, Is.EqualTo("Liverpool"));
+            Assert.That(weeklyPrediction.AwayTeam, Is.EqualTo("Everton"));
+            Assert.That(weeklyPrediction.League, Is.EqualTo("Premier League"));
+            Assert.That(weeklyPrediction.Country, Is.EqualTo("England"));
+
+            int totalProbability =
+                weeklyPrediction.HomeWinProbability +
+                weeklyPrediction.DrawProbability +
+                weeklyPrediction.AwayWinProbability;
+
+            Assert.That(totalProbability, Is.EqualTo(100));
+        }
+
+        [Test]
+        public async Task CalculatePrediction_WithExistingMatchButMissingStatistics_ShouldReturnBadRequest()
+        {
+            // Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League",
+                Country = "England"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            Match match = new Match
+            {
+                League = league,
+                HomeTeam = homeTeam,
+                AwayTeam = awayTeam,
+                KickoffTime = DateTime.UtcNow.AddDays(1)
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+            dbContext.Matches.Add(match);
+
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            HttpResponseMessage response =
+                await client!.PostAsync($"/api/admin/predictions/calculate/{match.Id}", null);
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+            ErrorResponse? errorResponse =
+                await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+            Assert.That(errorResponse, Is.Not.Null);
+            Assert.That(errorResponse!.Message, Is.EqualTo("Statistics do not exist for this match."));
+        }
+
+        [Test]
+        public async Task DeletePrediction_WithExistingPrediction_ShouldReturnNoContentAndRemovePrediction()
+        {
+            // Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League",
+                Country = "England"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            Match match = new Match
+            {
+                League = league,
+                HomeTeam = homeTeam,
+                AwayTeam = awayTeam,
+                KickoffTime = DateTime.UtcNow.AddDays(1)
+            };
+
+            Prediction prediction = new Prediction
+            {
+                Match = match,
+                HomeWinProbability = 50,
+                DrawProbability = 20,
+                AwayWinProbability = 30
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+            dbContext.Matches.Add(match);
+            dbContext.Predictions.Add(prediction);
+
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            HttpResponseMessage response =
+                await client!.DeleteAsync($"/api/admin/predictions/{prediction.Id}");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+            int predictionsCount = await dbContext.Predictions.CountAsync();
+
+            Assert.That(predictionsCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public async Task ImportPredictionsFromCsv_WithInvalidLeague_ShouldReturnBadRequestAndImportNothing()
+        {
+            // Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League",
+                Country = "England"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+
+            await dbContext.SaveChangesAsync();
+
+            string csvContent =
+                "league_name,home_team_name,away_team_name,kickoff_time,home_recent_wins,home_recent_draws,home_recent_losses,away_recent_wins,away_recent_draws,away_recent_losses,home_last10_home_wins,home_last10_home_draws,home_last10_home_losses,away_last10_away_wins,away_last10_away_draws,away_last10_away_losses,home_xg_for_average,home_xg_against_average,away_xg_for_average,away_xg_against_average,home_goals_scored_average,away_goals_scored_average,home_goals_conceded_average,away_goals_conceded_average,home_shots_on_target_for_average,home_shots_on_target_against_average,away_shots_on_target_for_average,away_shots_on_target_against_average,head_to_head_matches_count,head_to_head_home_wins,head_to_head_draws,head_to_head_away_wins,home_key_players_missing_impact,away_key_players_missing_impact,home_fatigue_impact,away_fatigue_impact\n" +
+                "Wrong League,Liverpool,Everton," + DateTime.UtcNow.AddDays(1).ToString("o") + ",5,1,0,1,1,4,8,2,0,2,2,6,2.20,0.80,0.90,1.90,2.10,0.90,0.70,1.80,6.50,2.80,3.10,6.00,6,4,1,1,0,2,0,2";
+
+            using var form = new MultipartFormDataContent();
+
+            using var fileContent = new StringContent(csvContent, Encoding.UTF8);
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
+
+            form.Add(fileContent, "file", "invalid-league-import.csv");
+
+            // Act
+            HttpResponseMessage response =
+                await client!.PostAsync("/api/admin/prediction-imports/csv", form);
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+            ImportPredictionResponse? importResponse =
+                await response.Content.ReadFromJsonAsync<ImportPredictionResponse>();
+
+            Assert.That(importResponse, Is.Not.Null);
+            Assert.That(importResponse!.CreatedMatches, Is.EqualTo(0));
+            Assert.That(importResponse.CreatedStatistics, Is.EqualTo(0));
+            Assert.That(importResponse.CreatedPredictions, Is.EqualTo(0));
+            Assert.That(importResponse.Errors, Is.Not.Empty);
+            Assert.That(importResponse.Errors.Any(error =>
+                error.Contains("League 'Wrong League' does not exist.")), Is.True);
+
+            int matchesCount = await dbContext.Matches.CountAsync();
+            int statisticsCount = await dbContext.MatchStatistics.CountAsync();
+            int predictionsCount = await dbContext.Predictions.CountAsync();
+
+            Assert.That(matchesCount, Is.EqualTo(0));
+            Assert.That(statisticsCount, Is.EqualTo(0));
+            Assert.That(predictionsCount, Is.EqualTo(0));
+        }
+       
+
+        [Test]
+        public async Task ClearWeeklyData_WithExistingWeeklyData_ShouldDeleteMatchesStatisticsAndPredictionsButKeepLeaguesAndTeams()
+        {
+            // Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext =
+                scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League",
+                Country = "England"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            Match match = new Match
+            {
+                League = league,
+                HomeTeam = homeTeam,
+                AwayTeam = awayTeam,
+                KickoffTime = DateTime.UtcNow.AddDays(1)
+            };
+
+            MatchStatistics statistics = new MatchStatistics
+            {
+                Match = match,
+
+                HomeRecentWins = 5,
+                HomeRecentDraws = 1,
+                HomeRecentLosses = 0,
+
+                AwayRecentWins = 1,
+                AwayRecentDraws = 1,
+                AwayRecentLosses = 4,
+
+                HomeLast10HomeWins = 8,
+                HomeLast10HomeDraws = 2,
+                HomeLast10HomeLosses = 0,
+
+                AwayLast10AwayWins = 2,
+                AwayLast10AwayDraws = 2,
+                AwayLast10AwayLosses = 6,
+
+                HomeXgForAverage = 2.20m,
+                HomeXgAgainstAverage = 0.80m,
+                AwayXgForAverage = 0.90m,
+                AwayXgAgainstAverage = 1.90m,
+
+                HomeGoalsScoredAverage = 2.10m,
+                AwayGoalsScoredAverage = 0.90m,
+
+                HomeGoalsConcededAverage = 0.70m,
+                AwayGoalsConcededAverage = 1.80m,
+
+                HomeShotsOnTargetForAverage = 6.50m,
+                HomeShotsOnTargetAgainstAverage = 2.80m,
+                AwayShotsOnTargetForAverage = 3.10m,
+                AwayShotsOnTargetAgainstAverage = 6.00m,
+
+                HeadToHeadMatchesCount = 6,
+                HeadToHeadHomeWins = 4,
+                HeadToHeadDraws = 1,
+                HeadToHeadAwayWins = 1,
+
+                HomeKeyPlayersMissingImpact = 0,
+                AwayKeyPlayersMissingImpact = 2,
+
+                HomeFatigueImpact = 0,
+                AwayFatigueImpact = 2
+            };
+
+            Prediction prediction = new Prediction
+            {
+                Match = match,
+                HomeWinProbability = 50,
+                DrawProbability = 20,
+                AwayWinProbability = 30
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+            dbContext.Matches.Add(match);
+            dbContext.MatchStatistics.Add(statistics);
+            dbContext.Predictions.Add(prediction);
+
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            HttpResponseMessage response =
+                await client!.DeleteAsync("/api/admin/weekly-data");
+
+            // Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            int leaguesCount = await dbContext.Leagues.CountAsync();
+            int teamsCount = await dbContext.Teams.CountAsync();
+            int matchesCount = await dbContext.Matches.CountAsync();
+            int statisticsCount = await dbContext.MatchStatistics.CountAsync();
+            int predictionsCount = await dbContext.Predictions.CountAsync();
+
+            Assert.That(leaguesCount, Is.EqualTo(1));
+            Assert.That(teamsCount, Is.EqualTo(2));
+            Assert.That(matchesCount, Is.EqualTo(0));
+            Assert.That(statisticsCount, Is.EqualTo(0));
+            Assert.That(predictionsCount, Is.EqualTo(0));
+        }
     }
 }
