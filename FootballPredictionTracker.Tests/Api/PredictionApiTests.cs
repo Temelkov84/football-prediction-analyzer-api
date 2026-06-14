@@ -8,6 +8,9 @@ using FootballPredictionTracker.Api.DTOs;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Text;
+using Microsoft.Identity.Client;
+using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 
 namespace FootballPredictionTracker.Tests.Api
 {
@@ -32,14 +35,113 @@ namespace FootballPredictionTracker.Tests.Api
         }
 
         [Test]
-        public async Task GetWeeklyPredictions_ShouldReturnOk()
+        public async Task GetWeeklyPredictions_WhenNoPredictionsExist_ShouldReturnOkAndEmptyList()
         {
+
+            //Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
             // Act
             HttpResponseMessage response =
                 await client!.GetAsync("/api/Predictions/weekly");
 
             // Assert
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            List<WeeklyPredictionResponse>? predictions = await response.Content.ReadFromJsonAsync<List<WeeklyPredictionResponse>>();
+
+            Assert.That(predictions, Is.Not.Null);
+            Assert.That(predictions, Is.Empty);
+        }
+
+        [Test]
+        public async Task GetWeeklyPredictions_WhenPredictionExists_ShouldReturnPrediction()
+        {
+            //Arrange
+            using IServiceScope scope = factory!.Services.CreateScope();
+
+            ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+
+            await dbContext.Database.EnsureDeletedAsync();
+            await dbContext.Database.EnsureCreatedAsync();
+
+            League league = new League
+            {
+                Name = "Premier League",
+                Country = "England"
+            };
+
+            Team homeTeam = new Team
+            {
+                Name = "Liverpool",
+                League = league
+            };
+
+            Team awayTeam = new Team
+            {
+                Name = "Everton",
+                League = league
+            };
+
+            Match match = new Match
+            {
+                League = league,
+                HomeTeam = homeTeam,
+                AwayTeam = awayTeam,
+                KickoffTime = DateTime.UtcNow.AddDays(1)
+            };
+
+            Prediction prediction = new Prediction
+            {
+                Match = match,
+                HomeWinProbability = 50,
+                DrawProbability = 20,
+                AwayWinProbability = 30
+            };
+
+            dbContext.Leagues.Add(league);
+            dbContext.Teams.AddRange(homeTeam, awayTeam);
+            dbContext.Matches.Add(match);
+            dbContext.Predictions.Add(prediction);
+
+            await dbContext.SaveChangesAsync();
+
+            //Act
+            HttpResponseMessage response = await client!.GetAsync("/api/Predictions/weekly");
+
+
+            //Assert
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            List<WeeklyPredictionResponse>? predictions =
+              await response.Content.ReadFromJsonAsync<List<WeeklyPredictionResponse>>();
+
+            Assert.That(predictions, Is.Not.Null);
+            Assert.That(predictions, Has.Count.EqualTo(1));
+
+            WeeklyPredictionResponse predictionResponse = predictions!.Single();
+
+            Assert.That(predictionResponse.HomeTeam, Is.EqualTo("Liverpool"));
+            Assert.That(predictionResponse.AwayTeam, Is.EqualTo("Everton"));
+            Assert.That(predictionResponse.League, Is.EqualTo("Premier League"));
+
+            Assert.That(predictionResponse.HomeWinProbability, Is.EqualTo(50));
+            Assert.That(predictionResponse.DrawProbability, Is.EqualTo(20));
+            Assert.That(predictionResponse.AwayWinProbability, Is.EqualTo(30));
+
+            int totalProbability = 
+                predictionResponse.HomeWinProbability +
+                predictionResponse.DrawProbability +
+                predictionResponse.AwayWinProbability;
+
+            Assert.That(totalProbability, Is.EqualTo(100));
+           
         }
 
 
