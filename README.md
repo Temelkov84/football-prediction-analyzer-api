@@ -4,9 +4,9 @@
 
 Football Prediction Analyzer is a QA automation portfolio project built around a realistic football prediction workflow.
 
-The application includes an ASP.NET Core backend, a React frontend, SQL Server database support, admin data management, CSV prediction import, backend validation, automated prediction calculation and a public weekly predictions page.
+The application includes an ASP.NET Core Web API backend, a React/Vite frontend, Entity Framework Core database flow, admin data management, CSV prediction import, backend validation, automated prediction calculation and a public weekly predictions page.
 
-The goal of this project is not to present a final commercial prediction formula, but to provide a realistic application for practicing and demonstrating QA automation skills across multiple levels: API testing, integration testing, validation testing, frontend workflow testing and CI.
+The goal of this project is not to present a final commercial prediction formula, but to provide a realistic application for practicing and demonstrating QA automation skills across multiple levels: API testing, integration testing, validation testing, frontend workflow testing, Playwright E2E testing and CI.
 
 ## Tech Stack
 
@@ -18,6 +18,7 @@ The goal of this project is not to present a final commercial prediction formula
 * NUnit
 * WebApplicationFactory
 * EF Core InMemory database for integration tests
+* Playwright
 * GitHub Actions
 
 ## Main Features
@@ -39,16 +40,57 @@ This public version is used as a demo and portfolio engine. The project focuses 
 
 ## Testing
 
-The backend test project includes:
+The project includes backend API/integration tests and frontend Playwright E2E tests.
 
-* Unit tests for prediction calculation logic.
-* API/integration tests for public weekly predictions.
-* Admin prediction calculation tests.
-* JSON prediction import tests.
-* CSV prediction import tests.
-* Validation tests for important backend workflows.
+### Backend Tests
 
-Integration tests use `WebApplicationFactory` and an EF Core InMemory test database. This allows the tests to run both locally and in GitHub Actions without depending on SQL Server LocalDB.
+The backend test project covers:
+
+* Public weekly predictions endpoint.
+* Admin prediction calculation.
+* CSV prediction import workflow.
+* JSON prediction import workflow.
+* Validation errors for important backend rules.
+* Database state assertions after API actions.
+* Weekly data cleanup workflow.
+
+Integration tests use `WebApplicationFactory`, `HttpClient` and an EF Core InMemory test database. This allows the tests to run both locally and in GitHub Actions without depending on SQL Server LocalDB.
+
+Backend tests can be run from the solution root:
+
+```bash
+dotnet test
+```
+
+### Playwright E2E Tests
+
+The frontend Playwright tests cover:
+
+* Public weekly predictions page loading.
+* Weekly predictions section and empty state handling.
+* Admin Import Predictions tab and upload form.
+* CSV upload through the frontend UI.
+* Successful CSV import flow.
+* Public page visibility after successful import.
+* Negative validation scenarios for invalid CSV data.
+
+The strongest E2E flow covers:
+
+```text
+Admin CSV upload
+→ backend validation
+→ match/statistics/prediction creation
+→ public weekly predictions display
+```
+
+Playwright tests can be run from the frontend project:
+
+```bash
+cd FootballPredictionTracker.Client
+npm run test:e2e
+```
+
+The frontend test suite currently runs locally. Playwright CI is planned as a future improvement after backend/database setup for stable end-to-end execution in GitHub Actions.
 
 ## Continuous Integration
 
@@ -64,11 +106,13 @@ The workflow runs on every push and pull request to the `main` branch.
 
 This project is being used as a practical QA automation training and portfolio project.
 
-Current and planned testing areas include:
+Current testing areas include:
 
 * API testing
 * Integration testing
 * CSV import validation
+* Backend validation testing
+* Database state verification
 * Frontend workflow validation
 * Playwright end-to-end testing
 * CI pipeline execution
@@ -77,10 +121,14 @@ Current and planned testing areas include:
 
 The project currently supports the core backend and frontend workflow:
 
+```text
 CSV data import
 → backend validation
 → match/statistics creation
 → prediction calculation
 → public weekly predictions display
+```
 
-The next development focus is adding Playwright end-to-end tests for the main user and admin workflows.
+The current portfolio version includes backend API/integration test coverage, Playwright frontend E2E coverage and GitHub Actions backend CI.
+
+Future improvements may include broader Playwright coverage, Playwright CI setup, more advanced frontend workflows and a private version of the prediction engine for further product development.
